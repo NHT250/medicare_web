@@ -1,0 +1,62 @@
+.top-banner {
+  background: linear-gradient(90deg, #1d4ed8, #2563eb, #3b82f6);
+  color: #fff;
+  padding: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.top-banner .container-fluid {
+  padding-left: 3rem;
+  padding-right: 3rem;
+}
+
+.top-banner-message {
+  position: relative;
+  overflow: hidden;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.banner-text {
+  position: absolute;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.5s ease;
+  white-space: nowrap;
+}
+
+.banner-text.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.banner-close-btn {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.banner-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .top-banner .container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .top-banner {
+    font-size: 0.85rem;
+  }
+}

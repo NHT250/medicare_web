@@ -1,0 +1,165 @@
+/* Cart Page Styles */
+
+.cart-page {
+  min-height: 100vh;
+  background: #f8f9fa;
+}
+
+/* Empty Cart */
+.empty-cart {
+  background: white;
+  padding: 4rem 2rem;
+  border-radius: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.empty-cart i {
+  color: #cbd5e1;
+}
+
+/* Cart Items */
+.cart-item {
+  margin-bottom: 1rem;
+}
+
+.cart-item .row {
+  padding: 1rem 0;
+}
+
+.cart-item:last-child hr {
+  display: none;
+}
+
+.cart-item img {
+  max-width: 100px;
+  height: auto;
+  object-fit: cover;
+}
+
+.cart-item h6 {
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.cart-item small {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+/* Quantity Control */
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quantity-control .btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.quantity-control span {
+  min-width: 30px;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* Order Summary Card */
+.card-header {
+  padding: 1rem 1.5rem;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.card-body .d-flex {
+  font-size: 1rem;
+}
+
+.card-body .d-flex strong {
+  font-size: 1.2rem;
+}
+
+.card-body hr {
+  margin: 1rem 0;
+}
+
+/* Payment Methods */
+.card-body i {
+  transition: transform 0.3s ease;
+}
+
+.card-body i:hover {
+  transform: scale(1.2);
+}
+
+/* Buttons */
+.btn-success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: none;
+  font-weight: 600;
+  padding: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-outline-secondary {
+  border: 2px solid #e5e7eb;
+  color: #64748b;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+.btn-danger {
+  background: #ef4444;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+  transform: scale(1.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cart-item .row {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .cart-item img {
+    margin: 0 auto 1rem;
+  }
+  
+  .quantity-control {
+    justify-content: center;
+    margin: 0.5rem 0;
+  }
+  
+  .cart-item .btn-danger {
+    margin-top: 0.5rem;
+  }
+}
+
+
+
+
+

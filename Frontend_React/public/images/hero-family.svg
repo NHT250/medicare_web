@@ -1,0 +1,51 @@
+<svg width="1200" height="600" viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Family and kids health banner">
+  <defs>
+    <linearGradient id="family-bg" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1C7ED6" />
+      <stop offset="100%" stop-color="#2FB1FF" />
+    </linearGradient>
+    <clipPath id="family-rounded">
+      <rect width="1200" height="600" rx="28" ry="28" />
+    </clipPath>
+  </defs>
+  <g clip-path="url(#family-rounded)">
+    <rect width="1200" height="600" fill="url(#family-bg)" />
+    <g fill="#fff" opacity="0.12">
+      <circle cx="220" cy="130" r="40" />
+      <circle cx="300" cy="100" r="22" />
+      <rect x="120" y="380" width="160" height="18" rx="9" />
+      <rect x="180" y="410" width="120" height="18" rx="9" />
+      <circle cx="980" cy="160" r="60" />
+    </g>
+    <text x="120" y="130" font-family="'Inter', sans-serif" font-size="24" font-weight="700" fill="#E7F6FF">World Health Day</text>
+    <text x="120" y="190" font-family="'Inter', sans-serif" font-size="58" font-weight="800" fill="#ffffff">Family &amp; Kids Care</text>
+    <text x="120" y="240" font-family="'Inter', sans-serif" font-size="24" fill="#E7F6FF">Gentle, kid-friendly health advice &amp; supplies.</text>
+    <g fill="#E7F6FF" font-family="'Inter', sans-serif" font-size="20" opacity="0.92">
+      <text x="120" y="290">• Products for adults &amp; children</text>
+      <text x="120" y="324">• Gentle &amp; kid-friendly options</text>
+      <text x="120" y="358">• Home first-aid and basic care</text>
+    </g>
+    <g transform="translate(700,60)">
+      <rect x="0" y="0" width="440" height="480" rx="28" fill="#E7F6FF" />
+      <circle cx="220" cy="210" r="150" fill="#B7E0FF" />
+      <circle cx="220" cy="210" r="120" fill="#fff" opacity="0.92" />
+      <path d="M220 120 c-30 0-54 32-54 72 c0 60 108 60 108 0 c0-40-24-72-54-72z" fill="#F7B267" />
+      <circle cx="190" cy="180" r="12" fill="#1C7ED6" opacity="0.75" />
+      <circle cx="250" cy="180" r="12" fill="#1C7ED6" opacity="0.75" />
+      <rect x="185" y="222" width="70" height="16" rx="8" fill="#1C7ED6" opacity="0.6" />
+      <rect x="200" y="242" width="40" height="12" rx="6" fill="#1C7ED6" opacity="0.6" />
+      <rect x="170" y="260" width="110" height="60" rx="18" fill="#2FB1FF" />
+      <rect x="150" y="320" width="140" height="60" rx="18" fill="#1C7ED6" opacity="0.85" />
+      <circle cx="160" cy="340" r="20" fill="#E7F6FF" />
+      <circle cx="280" cy="340" r="20" fill="#E7F6FF" />
+      <circle cx="220" cy="56" r="40" fill="#2FB1FF" opacity="0.4" />
+      <circle cx="330" cy="120" r="20" fill="#2FB1FF" opacity="0.5" />
+      <circle cx="110" cy="120" r="20" fill="#2FB1FF" opacity="0.5" />
+      <rect x="60" y="360" width="320" height="80" rx="24" fill="#F4F9FF" />
+      <rect x="90" y="380" width="260" height="16" rx="8" fill="#B7D8FF" />
+      <rect x="90" y="406" width="220" height="16" rx="8" fill="#B7D8FF" opacity="0.85" />
+    </g>
+    <text x="120" y="450" font-family="'Inter', sans-serif" font-size="22" font-weight="700" fill="#ffffff">24 Hour Service</text>
+    <text x="120" y="484" font-family="'Inter', sans-serif" font-size="18" fill="#E7F6FF">Free general check up for the whole family.</text>
+  </g>
+</svg>

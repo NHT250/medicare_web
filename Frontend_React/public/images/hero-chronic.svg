@@ -1,0 +1,38 @@
+<svg width="1200" height="600" viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Chronic care heartbeat banner">
+  <defs>
+    <linearGradient id="chronic-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B2A67" />
+      <stop offset="100%" stop-color="#0F4C81" />
+    </linearGradient>
+    <clipPath id="chronic-rounded">
+      <rect width="1200" height="600" rx="28" ry="28" />
+    </clipPath>
+  </defs>
+  <g clip-path="url(#chronic-rounded)">
+    <rect width="1200" height="600" fill="url(#chronic-bg)" />
+    <path d="M0 320 H260 L320 210 L380 390 L460 180 L530 440 L600 260 L680 360 L740 240 L800 360 L860 220 L940 360 L1200 360" stroke="#4ADEDE" stroke-width="12" fill="none" stroke-linecap="round" />
+    <circle cx="600" cy="260" r="28" fill="#4ADEDE" opacity="0.75" />
+    <text x="120" y="160" font-family="'Inter', sans-serif" font-size="22" font-weight="700" fill="#BFE6FF">MedicalCare</text>
+    <text x="120" y="210" font-family="'Inter', sans-serif" font-size="58" font-weight="800" fill="#E0F2FF">Easy Chronic Care Refills</text>
+    <text x="120" y="260" font-family="'Inter', sans-serif" font-size="22" fill="#D6E6FF">Specialized long-term care with reminders and repeat orders.</text>
+    <g fill="#D6E6FF" font-family="'Inter', sans-serif" font-size="20" opacity="0.9">
+      <text x="120" y="310">• Refill reminders for chronic conditions</text>
+      <text x="120" y="344">• Hypertension, diabetes, and more</text>
+      <text x="120" y="378">• Manage your prescriptions online</text>
+    </g>
+    <rect x="120" y="410" width="220" height="50" rx="14" fill="#4ADEDE" opacity="0.9" />
+    <text x="152" y="445" font-family="'Inter', sans-serif" font-size="20" font-weight="700" fill="#0B2A67">Book Your Next Appointment</text>
+    <g transform="translate(740,120)">
+      <rect x="0" y="0" width="380" height="340" rx="22" fill="#0A3566" opacity="0.6" />
+      <rect x="18" y="18" width="344" height="304" rx="22" fill="#102F5F" />
+      <rect x="40" y="60" width="260" height="32" rx="16" fill="#1E9FE3" />
+      <rect x="40" y="110" width="220" height="18" rx="9" fill="#4ADEDE" opacity="0.8" />
+      <rect x="40" y="140" width="260" height="18" rx="9" fill="#4ADEDE" opacity="0.7" />
+      <rect x="40" y="170" width="200" height="18" rx="9" fill="#4ADEDE" opacity="0.6" />
+      <rect x="40" y="220" width="140" height="60" rx="18" fill="#0BCBC0" opacity="0.85" />
+      <rect x="200" y="220" width="120" height="60" rx="18" fill="#1E9FE3" opacity="0.85" />
+      <circle cx="290" cy="120" r="36" fill="#4ADEDE" opacity="0.35" />
+      <path d="M60 250 L80 220 L110 280 L150 210 L180 280 L210 230 L240 270" stroke="#8BF0E5" stroke-width="10" fill="none" stroke-linecap="round" />
+    </g>
+  </g>
+</svg>

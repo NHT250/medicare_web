@@ -1,0 +1,275 @@
+/* Orders Page Styles */
+
+.orders-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f8f9fa;
+}
+
+.orders-page .container {
+  flex: 1;
+}
+
+/* Page Header */
+.page-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.page-header p {
+  font-size: 1.1rem;
+}
+
+/* Empty Orders */
+.empty-orders {
+  background: white;
+  border-radius: 10px;
+  padding: 60px 20px;
+}
+
+.empty-orders i {
+  font-size: 80px;
+}
+
+.empty-orders h4 {
+  margin-top: 20px;
+  font-size: 1.5rem;
+}
+
+/* Order Card */
+.order-card {
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.order-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.order-card .card-header {
+  background: white;
+  border-bottom: 2px solid #f0f0f0;
+  padding: 20px;
+}
+
+.order-info {
+  margin-bottom: 0;
+}
+
+.order-info small {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.order-info strong {
+  font-size: 1rem;
+  color: #333;
+}
+
+/* Status Badges */
+.badge {
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Order Details */
+.card-body {
+  background: #fafafa;
+  padding: 25px;
+}
+
+.card-body h6 {
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+/* Table */
+.table {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table thead {
+  background: #f8f9fa;
+}
+
+.table th {
+  font-weight: 600;
+  color: #666;
+  border-bottom: 2px solid #dee2e6;
+  padding: 12px 15px;
+}
+
+.table td {
+  padding: 12px 15px;
+  vertical-align: middle;
+}
+
+/* Shipping & Summary Info */
+.shipping-info,
+.order-summary {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.shipping-info p {
+  margin-bottom: 8px;
+  color: #666;
+}
+
+.order-summary .d-flex {
+  font-size: 1rem;
+}
+
+.order-summary hr {
+  margin: 15px 0;
+}
+
+.payment-info {
+  padding: 12px;
+  background: #fff3cd;
+  border-radius: 6px;
+  border: 1px solid #ffc107;
+}
+
+/* Order Tracking */
+.order-tracking {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.tracking-timeline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  margin-top: 20px;
+}
+
+.tracking-timeline::before {
+  content: '';
+  position: absolute;
+  top: 25px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #e0e0e0;
+  z-index: 1;
+}
+
+.tracking-step {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  flex: 1;
+}
+
+.tracking-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+  font-size: 1.2rem;
+  transition: all 0.3s;
+}
+
+.tracking-step.completed .tracking-icon {
+  background: #28a745;
+}
+
+.tracking-label {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 600;
+}
+
+.tracking-step.completed .tracking-label {
+  color: #28a745;
+}
+
+/* Action Buttons */
+.order-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.order-actions .btn {
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 10px 20px;
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+  .order-card .card-header .row > div {
+    margin-bottom: 15px;
+  }
+
+  .order-card .card-header .row > div:last-child {
+    margin-bottom: 0;
+  }
+
+  .tracking-timeline {
+    flex-wrap: wrap;
+  }
+
+  .tracking-step {
+    flex: 0 0 50%;
+    margin-bottom: 30px;
+  }
+
+  .tracking-timeline::before {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .page-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .order-card .card-header,
+  .card-body {
+    padding: 15px;
+  }
+
+  .order-info {
+    margin-bottom: 10px;
+  }
+
+  .order-actions {
+    flex-direction: column;
+  }
+
+  .order-actions .btn {
+    width: 100%;
+  }
+
+  .tracking-step {
+    flex: 0 0 100%;
+  }
+}
+
