@@ -1,4 +1,5 @@
 # Medicare Backend API - Flask Application
+import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from pymongo import ASCENDING, DESCENDING, MongoClient
@@ -131,6 +132,7 @@ def order_to_dict(order):
 # Initialize Flask app
 app = Flask(__name__)
 app.config.from_object(Config)
+RECAPTCHA_SECRET = os.getenv("RECAPTCHA_SECRET")
 
 # Enable CORS with better configuration
 CORS(app, 
@@ -291,12 +293,23 @@ def register():
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     try:
-        data = request.json
+        data = request.json or {}
 
-        # Verify reCAPTCHA when enabled
-        if Config.ENABLE_RECAPTCHA and not verify_recaptcha(data.get('recaptcha_token')):
-            return jsonify({'error': 'reCAPTCHA verification failed'}), 400
-        
+        recaptcha_token = data.get('recaptchaToken')
+        if not recaptcha_token:
+            return jsonify({'message': 'Missing reCAPTCHA token'}), 400
+
+        verify_url = "https://www.google.com/recaptcha/api/siteverify"
+        payload = {
+            "secret": RECAPTCHA_SECRET,
+            "response": recaptcha_token,
+        }
+        r = requests.post(verify_url, data=payload)
+        result = r.json()
+
+        if not result.get("success"):
+            return jsonify({"message": "Xác minh reCAPTCHA thất bại."}), 400
+
         # Find user
         user = db.users.find_one({'email': data['email']})
         if not user:

@@ -1,18 +1,23 @@
 // Auth Page - Login & Register
+// npm install react-google-recaptcha
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import config from "../config";
 import "../styles/Auth.css";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, register, isAuthenticated, role, user } = useAuth();
 
+  const SITE_KEY = "6LfGbvwrAAAAAOCXGdw0YWlf4VQ6pk6FI5nN8Bke";
+
   const [activeTab, setActiveTab] = useState("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [recaptchaToken, setRecaptchaToken] = useState(null);
 
   // Login form state
   const [loginForm, setLoginForm] = useState({
@@ -60,20 +65,18 @@ const Auth = () => {
       return;
     }
 
-    // Get reCAPTCHA token
-    if (window.grecaptcha) {
-      const recaptchaToken = window.grecaptcha.getResponse();
-      if (!recaptchaToken) {
-        setError("Please complete the reCAPTCHA");
-        return;
-      }
-      loginForm.recaptcha_token = recaptchaToken;
+    if (!recaptchaToken) {
+      setError('Vui lòng xác nhận "I\'m not a robot".');
+      return;
     }
 
     setLoading(true);
 
     try {
-      const result = await login(loginForm);
+      const result = await login({
+        ...loginForm,
+        recaptchaToken,
+      });
 
       if (result.success) {
         alert("Login successful! Redirecting...");
@@ -321,12 +324,19 @@ const Auth = () => {
                     </div>
 
                     {/* reCAPTCHA */}
-                    <div className="captcha-container">
-                      <div
-                        className="g-recaptcha"
-                        data-sitekey={config.RECAPTCHA_SITE_KEY}
-                      ></div>
+                    <div className="d-flex justify-content-center mb-3">
+                      <ReCAPTCHA
+                        sitekey={SITE_KEY}
+                        onChange={(token) => {
+                          setRecaptchaToken(token);
+                          setError("");
+                        }}
+                      />
                     </div>
+
+                    {error && (
+                      <p className="text-danger text-center small mb-2">{error}</p>
+                    )}
 
                     <button
                       type="submit"
