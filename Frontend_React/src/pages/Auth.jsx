@@ -23,7 +23,6 @@ const Auth = () => {
   const [loginForm, setLoginForm] = useState({
     email: "",
     password: "",
-    recaptcha_token: "",
   });
 
   // Register form state
