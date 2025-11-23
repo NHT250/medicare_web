@@ -68,10 +68,16 @@ export const authAPI = {
       const response = await api.post('/api/auth/register', userData);
       return response.data;
     } catch (error) {
-      console.warn('Auth API unavailable, returning mock OTP response.');
+      console.warn('Auth API unavailable, returning mock registration response.');
       return {
-        message: 'OTP sent (mock)',
-        email: userData?.email
+        message: 'Registration successful (mock)',
+        user: {
+          _id: 'mock-user-id',
+          email: userData?.email,
+          name: userData?.name,
+          phone: userData?.phone,
+          role: 'customer',
+        },
       };
     }
   },
@@ -81,16 +87,8 @@ export const authAPI = {
       const response = await api.post('/api/auth/verify-otp', payload);
       return response.data;
     } catch (error) {
-      console.warn('Verify OTP API unavailable, returning mock verification.');
-      return {
-        message: 'verified',
-        user: {
-          _id: 'mock-user-id',
-          email: payload?.email,
-          name: payload?.email?.split('@')[0] || 'User',
-          role: 'customer'
-        }
-      };
+      console.warn('Verify OTP API unavailable; OTP verification is disabled.');
+      return { message: 'OTP verification not required.' };
     }
   },
 
@@ -99,8 +97,8 @@ export const authAPI = {
       const response = await api.post('/api/auth/resend-otp', payload);
       return response.data;
     } catch (error) {
-      console.warn('Resend OTP API unavailable, returning mock response.');
-      return { message: 'OTP resent (mock)' };
+      console.warn('Resend OTP API unavailable; OTP verification is disabled.');
+      return { message: 'OTP verification not required.' };
     }
   },
 

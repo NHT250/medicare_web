@@ -8,6 +8,7 @@ const Register = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [registerForm, setRegisterForm] = useState({
     name: "",
@@ -37,6 +38,7 @@ const Register = () => {
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     if (
       !registerForm.name ||
@@ -90,8 +92,8 @@ const Register = () => {
     try {
       const result = await register(registerForm);
       if (result.success) {
-        alert("OTP sent! Please verify your email to complete registration.");
-        navigate("/verify-otp", { state: { email: registerForm.email } });
+        setSuccess("Registration successful! Please log in to continue.");
+        navigate("/login");
       } else {
         setError(result.error);
       }
@@ -137,10 +139,16 @@ const Register = () => {
                 </div>
               )}
 
+              {success && (
+                <div className="alert alert-success" role="alert">
+                  {success}
+                </div>
+              )}
+
               <div className="form-section">
                 <h2 className="welcome-title">Create Account!</h2>
                 <p className="welcome-subtitle">
-                  Join Medicare and verify your email with a 6-digit OTP.
+                  Join Medicare to explore exclusive offers and services.
                 </p>
 
                 <form className="auth-form" onSubmit={handleRegisterSubmit}>
@@ -270,7 +278,7 @@ const Register = () => {
                   </div>
 
                   <button type="submit" className="submit-btn" disabled={loading}>
-                    {loading ? "Sending OTP..." : "Register"}
+                    {loading ? "Processing..." : "Register"}
                   </button>
                 </form>
 
@@ -291,39 +299,39 @@ const Register = () => {
           </div>
 
           <div className="promo-column">
-            <div className="promo-container">
-              <div className="promo-image">
-                <div className="image-placeholder">
-                  <i className="fas fa-envelope"></i>
-                  <span>EMAIL OTP</span>
+              <div className="promo-container">
+                <div className="promo-image">
+                  <div className="image-placeholder">
+                    <i className="fas fa-envelope"></i>
+                    <span>WELCOME</span>
+                  </div>
                 </div>
-              </div>
 
-              <h3 className="promo-title">Verify to Secure Your Account</h3>
-              <p className="promo-description">
-                We send a 6-digit code to your email. Enter it within 2 minutes
-                to complete your registration and keep your account safe.
-              </p>
+                <h3 className="promo-title">Secure Account Creation</h3>
+                <p className="promo-description">
+                  Create your Medicare account quickly and start exploring deals
+                  right away with built-in security safeguards.
+                </p>
 
               <div className="features">
-                <div className="feature">
-                  <div className="feature-icon">
-                    <i className="fas fa-shield-alt"></i>
+                  <div className="feature">
+                    <div className="feature-icon">
+                      <i className="fas fa-shield-alt"></i>
+                    </div>
+                    <span>Protected Data</span>
                   </div>
-                  <span>Secure OTP</span>
-                </div>
-                <div className="feature">
-                  <div className="feature-icon">
-                    <i className="fas fa-clock"></i>
+                  <div className="feature">
+                    <div className="feature-icon">
+                      <i className="fas fa-clock"></i>
+                    </div>
+                    <span>Quick Sign Up</span>
                   </div>
-                  <span>2-Minute Expiry</span>
-                </div>
-                <div className="feature">
-                  <div className="feature-icon">
-                    <i className="fas fa-sync-alt"></i>
+                  <div className="feature">
+                    <div className="feature-icon">
+                      <i className="fas fa-sync-alt"></i>
+                    </div>
+                    <span>Easy Updates</span>
                   </div>
-                  <span>Quick Resend</span>
-                </div>
               </div>
             </div>
           </div>

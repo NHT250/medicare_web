@@ -17,6 +17,7 @@ const Auth = () => {
   const [activeTab, setActiveTab] = useState("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [recaptchaToken, setRecaptchaToken] = useState(null);
 
   // Login form state
@@ -102,6 +103,7 @@ const Auth = () => {
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     // Validate form
     if (
@@ -163,8 +165,8 @@ const Auth = () => {
       const result = await register(registerForm);
 
       if (result.success) {
-        alert("OTP sent! Please verify your email to complete registration.");
-        navigate("/verify-otp", { state: { email: registerForm.email } });
+        alert("Registration successful! Please log in.");
+        navigate("/login");
         setRegisterForm({
           name: "",
           email: "",
@@ -177,6 +179,7 @@ const Auth = () => {
         if (window.grecaptcha) {
           window.grecaptcha.reset();
         }
+        setSuccess("Registration successful! You can now sign in.");
       } else {
         setError(result.error);
         if (window.grecaptcha) {
@@ -240,6 +243,7 @@ const Auth = () => {
                   onClick={() => {
                     setActiveTab("login");
                     setError("");
+                    setSuccess("");
                   }}
                 >
                   Login
@@ -249,6 +253,7 @@ const Auth = () => {
                   onClick={() => {
                     setActiveTab("register");
                     setError("");
+                    setSuccess("");
                   }}
                 >
                   Register
@@ -259,6 +264,12 @@ const Auth = () => {
               {error && (
                 <div className="alert alert-danger" role="alert">
                   {error}
+                </div>
+              )}
+
+              {success && (
+                <div className="alert alert-success" role="alert">
+                  {success}
                 </div>
               )}
 

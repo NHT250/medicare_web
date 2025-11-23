@@ -54,5 +54,5 @@ class Config:
     SMTP_FROM_EMAIL = os.getenv('SMTP_FROM_EMAIL', SMTP_USERNAME)
 
     if not SMTP_USERNAME or not SMTP_PASSWORD:
-        raise RuntimeError('Missing SMTP credentials in environment variables')
+        print('Warning: SMTP credentials are missing; email features are disabled.')
 
