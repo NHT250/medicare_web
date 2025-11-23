@@ -243,20 +243,10 @@ def login():
     try:
         data = request.json or {}
 
+        # Verify reCAPTCHA when enabled to match the registration flow
         recaptcha_token = data.get('recaptchaToken')
-        if not recaptcha_token:
-            return jsonify({'message': 'Missing reCAPTCHA token'}), 400
-
-        verify_url = "https://www.google.com/recaptcha/api/siteverify"
-        payload = {
-            "secret": RECAPTCHA_SECRET,
-            "response": recaptcha_token,
-        }
-        r = requests.post(verify_url, data=payload)
-        result = r.json()
-
-        if not result.get("success"):
-            return jsonify({"message": "Xác minh reCAPTCHA thất bại."}), 400
+        if Config.ENABLE_RECAPTCHA and not verify_recaptcha(recaptcha_token):
+            return jsonify({'error': 'reCAPTCHA verification failed'}), 400
 
         # Find user
         user = db.users.find_one({'email': data['email']})
