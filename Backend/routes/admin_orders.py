@@ -391,7 +391,7 @@ def get_order(current_user, order_id):  # pylint: disable=unused-argument
     return jsonify(_serialise_order(order, user))
 
 
-@admin_orders_bp.route("/<order_id>/status", methods=["PATCH"])
+@admin_orders_bp.route("/<order_id>/status", methods=["PATCH"])  # allow PATCH for admin updates
 @token_required
 @admin_required
 def update_order_status(current_user, order_id):
@@ -446,7 +446,7 @@ def update_order_status(current_user, order_id):
     return jsonify(_serialise_order(updated, users_map.get(updated.get("userId"))))
 
 
-@admin_orders_bp.route("/<order_id>", methods=["PATCH"])
+@admin_orders_bp.route("/<order_id>", methods=["PUT", "PATCH"])  # allow PATCH for admin updates
 @token_required
 @admin_required
 def update_order(current_user, order_id):
@@ -527,4 +527,3 @@ def delete_order(current_user, order_id):  # pylint: disable=unused-argument
 
     db.orders.delete_one({"_id": order["_id"]})
     return "", 204
-

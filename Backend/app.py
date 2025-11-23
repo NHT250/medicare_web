@@ -128,11 +128,13 @@ app.config.from_object(Config)
 RECAPTCHA_SECRET = os.getenv("RECAPTCHA_SECRET")
 
 # Enable CORS with better configuration
-CORS(app, 
-     origins=Config.CORS_ORIGINS,
-     supports_credentials=True,
-     allow_headers=['Content-Type', 'Authorization'],
-     methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
+CORS(
+    app,
+    origins=Config.CORS_ORIGINS,
+    supports_credentials=True,
+    allow_headers=['Content-Type', 'Authorization'],
+    methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],  # allow PATCH
+)
 
 # Connect to MongoDB
 client = MongoClient(Config.MONGODB_URI)

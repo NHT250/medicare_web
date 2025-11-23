@@ -235,7 +235,7 @@ def create_product(current_user):  # pylint: disable=unused-argument
     )
 
 
-@admin_bp.route("/products/<product_id>", methods=["PATCH"])
+@admin_bp.route("/products/<product_id>", methods=["PUT", "PATCH"])  # allow PATCH for admin updates
 @token_required
 @admin_required
 def update_product(current_user, product_id):  # pylint: disable=unused-argument
@@ -363,7 +363,7 @@ def get_user(current_user, user_id):
     )
 
 
-@admin_bp.route("/users/<user_id>", methods=["PATCH"])
+@admin_bp.route("/users/<user_id>", methods=["PUT", "PATCH"])  # allow PATCH for admin updates
 @token_required
 @admin_required
 def update_user(current_user, user_id):
@@ -498,4 +498,3 @@ def reset_user_password(current_user, user_id):
             "tempPassword": temp_password,
         }
     )
-
