@@ -1,12 +1,11 @@
 import React, { useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
 import config from "../config";
 import "../styles/Auth.css";
 
 const Register = () => {
   const navigate = useNavigate();
-  const { register } = useAuth();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -78,27 +77,30 @@ const Register = () => {
       return;
     }
 
+    const payload = { ...registerForm };
+
     if (window.grecaptcha) {
       const recaptchaToken = window.grecaptcha.getResponse();
       if (!recaptchaToken) {
         setError("Please complete the reCAPTCHA");
         return;
       }
-      registerForm.recaptcha_token = recaptchaToken;
+      payload.recaptcha_token = recaptchaToken;
     }
 
     setLoading(true);
 
     try {
-      const result = await register(registerForm);
-      if (result.success) {
-        setSuccess("Registration successful! Please log in to continue.");
-        navigate("/login");
-      } else {
-        setError(result.error);
-      }
+      await axios.post(`${config.API_URL}/api/auth/register`, payload);
+      setSuccess("Registration successful! Please log in to continue.");
+      navigate("/login");
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      console.error("Register error:", err);
+      setError(
+        err.response?.data?.error ||
+          err.message ||
+          "An error occurred. Please try again."
+      );
     } finally {
       setLoading(false);
       if (window.grecaptcha) {
