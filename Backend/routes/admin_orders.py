@@ -286,10 +286,12 @@ def _build_activity_entry(activity_type: str, actor: dict[str, Any], **extra: An
     return entry
 
 
-@admin_orders_bp.route("/", methods=["GET"])
+@admin_orders_bp.route("/", methods=["GET", "OPTIONS"])
 @token_required
 @admin_required
 def list_orders(current_user):  # pylint: disable=unused-argument
+    if request.method == "OPTIONS":
+        return ("", 204)
     db = _get_db()
 
     try:

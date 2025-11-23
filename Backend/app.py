@@ -132,8 +132,8 @@ CORS(
     app,
     origins=Config.CORS_ORIGINS,
     supports_credentials=True,
-    allow_headers=['Content-Type', 'Authorization'],
-    methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],  # allow PATCH
+    allow_headers=["Content-Type", "Authorization"],
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],  # allow PATCH
 )
 
 # Connect to MongoDB
