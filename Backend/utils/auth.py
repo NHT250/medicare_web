@@ -63,6 +63,9 @@ def admin_required(fn: Callable) -> Callable:
 
     @wraps(fn)
     def decorated(current_user: dict, *args: Any, **kwargs: Any):
+        # Let CORS preflight through without auth/role checks
+        if request.method == "OPTIONS":
+            return ("", 204)
         if current_user.get("role") != "admin":
             return jsonify({"error": "Admin privileges required"}), 403
         if current_user.get("is_banned"):
