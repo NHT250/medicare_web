@@ -50,7 +50,7 @@ const normaliseStatusKey = (status) => {
 
 const Orders = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading: authLoading, logout } = useAuth();
   
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,14 +58,18 @@ const Orders = () => {
 
   // Redirect if not authenticated
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
     if (!isAuthenticated) {
       alert('Please login to view orders');
       navigate('/login');
       return;
     }
-    
+
     loadOrders();
-  }, [isAuthenticated, navigate]);
+  }, [authLoading, isAuthenticated, navigate]);
 
   const loadOrders = async () => {
     try {
@@ -76,6 +80,12 @@ const Orders = () => {
       }
     } catch (error) {
       console.error('Error loading orders:', error);
+      if (error.response?.status === 401) {
+        alert('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.');
+        logout();
+        navigate('/login');
+        return;
+      }
       alert('Failed to load orders');
     } finally {
       setLoading(false);

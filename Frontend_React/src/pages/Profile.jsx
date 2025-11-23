@@ -9,7 +9,13 @@ import "../styles/Profile.css";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, updateUser } = useAuth();
+  const {
+    user,
+    isAuthenticated,
+    updateUser,
+    logout,
+    loading: authLoading,
+  } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -33,6 +39,10 @@ const Profile = () => {
 
   // Redirect if not authenticated
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
     if (!isAuthenticated) {
       alert("Please login to view profile");
       navigate("/login");
@@ -41,7 +51,7 @@ const Profile = () => {
 
     loadUserData();
     loadOrders();
-  }, [isAuthenticated, navigate]);
+  }, [authLoading, isAuthenticated, navigate]);
 
   const loadUserData = () => {
     if (user) {
@@ -68,6 +78,12 @@ const Profile = () => {
       }
     } catch (error) {
       console.error("Error loading orders:", error);
+      if (error.response?.status === 401) {
+        alert("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.");
+        logout();
+        navigate("/login");
+        return;
+      }
     }
   };
 
@@ -110,6 +126,12 @@ const Profile = () => {
       }
     } catch (error) {
       console.error("Error updating profile:", error);
+      if (error.response?.status === 401) {
+        alert("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.");
+        logout();
+        navigate("/login");
+        return;
+      }
       const apiMessage =
         error.response?.data?.message || error.response?.data?.error;
       if (apiMessage === "Email already exists") {

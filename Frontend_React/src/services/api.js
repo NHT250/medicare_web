@@ -27,19 +27,11 @@ api.interceptors.request.use(
 );
 
 // Response interceptor for error handling
+// Keep 401 errors for callers to handle so we can show a meaningful message
+// instead of abruptly clearing storage and redirecting.
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Unauthorized - clear local storage and redirect to login
-      localStorage.removeItem('medicare_token');
-      localStorage.removeItem('medicare_user');
-      localStorage.removeItem('medicare_logged_in');
-      localStorage.removeItem('medicare_role');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // ========== AUTH APIs ==========
