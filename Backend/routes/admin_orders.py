@@ -287,6 +287,7 @@ def _build_activity_entry(activity_type: str, actor: dict[str, Any], **extra: An
 
 
 @admin_orders_bp.route("/", methods=["GET", "OPTIONS"])
+@admin_orders_bp.route("", methods=["GET", "OPTIONS"])  # handle no trailing slash to avoid redirect on preflight
 @token_required
 @admin_required
 def list_orders(current_user):  # pylint: disable=unused-argument
