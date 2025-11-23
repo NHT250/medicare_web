@@ -1,18 +1,39 @@
-# MongoDB Seeder for Medicare - Python Version
-import pymongo
-from pymongo import MongoClient
+"""
+MongoDB Seeder for Medicare.
+- Tạo dữ liệu mẫu cho DB.
+- Cảnh báo: Mỗi lần chạy sẽ xóa sạch dữ liệu cũ trong users, products, categories.
+- Cách chạy: python seed_data.py
+"""
+
+import os
 from datetime import datetime
+
 import bcrypt
+from dotenv import load_dotenv
+from pymongo import MongoClient, errors
 
 from constants.categories import FIXED_CATEGORIES
 
-# Connect to MongoDB
-# For Local MongoDB:
-client = MongoClient('mongodb://localhost:27017/')
+# Load environment variables
+load_dotenv()
 
-# For MongoDB Atlas (Cloud):
-# client = MongoClient('mongodb+srv://cluster1.qncm65j.mongodb.net/')
-db = client['medicare']
+MONGO_URI = os.getenv("MONGO_URI") or os.getenv("MONGODB_URI") or "mongodb://localhost:27017/"
+DATABASE_NAME = os.getenv("DATABASE_NAME") or "medicare"
+
+def connect_db():
+    """Create a MongoDB client and return db handle."""
+    try:
+        client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+        client.admin.command("ping")
+        return client, client[DATABASE_NAME]
+    except errors.PyMongoError as exc:
+        print("❌ Cannot connect to MongoDB. Please check MONGO_URI / network.")
+        print(f"Details: {exc}")
+        return None, None
+
+client, db = connect_db()
+if not db:
+    raise SystemExit(1)
 
 # Clear existing data
 db.users.delete_many({})
@@ -166,18 +187,18 @@ sample_products = [
 ]
 
 # Insert data
-db.users.insert_many(sample_users)
-print('✅ Inserted users')
+try:
+    db.users.insert_many(sample_users)
+    print('✅ Inserted users')
 
-db.categories.insert_many(sample_categories)
-print('✅ Inserted categories')
+    db.categories.insert_many(sample_categories)
+    print('✅ Inserted categories')
 
-db.products.insert_many(sample_products)
-print('✅ Inserted products')
+    db.products.insert_many(sample_products)
+    print('✅ Inserted products')
 
-print('\n🎉 Database seeding completed successfully!')
-print('Database: medicare')
-print('Collections: users, products, categories')
-
-client.close()
-
+    print('\n🎉 Database seeding completed successfully!')
+    print(f'Database: {DATABASE_NAME}')
+    print('Collections: users, products, categories')
+finally:
+    client.close()

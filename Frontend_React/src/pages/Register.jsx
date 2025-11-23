@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import ReCAPTCHA from "react-google-recaptcha";
 import { useNavigate } from "react-router-dom";
 import config from "../config";
 import "../styles/Auth.css";
@@ -16,8 +17,8 @@ const Register = () => {
     password: "",
     confirmPassword: "",
     agreeTerms: false,
-    recaptcha_token: "",
   });
+  const [recaptchaToken, setRecaptchaToken] = useState(null);
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -77,16 +78,15 @@ const Register = () => {
       return;
     }
 
-    const payload = { ...registerForm };
-
-    if (window.grecaptcha) {
-      const recaptchaToken = window.grecaptcha.getResponse();
-      if (!recaptchaToken) {
-        setError("Please complete the reCAPTCHA");
-        return;
-      }
-      payload.recaptcha_token = recaptchaToken;
+    if (!recaptchaToken) {
+      setError('Vui lòng xác nhận "I\'m not a robot".');
+      return;
     }
+
+    const payload = {
+      ...registerForm,
+      recaptcha_token: recaptchaToken,
+    };
 
     setLoading(true);
 
@@ -103,9 +103,6 @@ const Register = () => {
       );
     } finally {
       setLoading(false);
-      if (window.grecaptcha) {
-        window.grecaptcha.reset();
-      }
     }
   };
 
@@ -272,12 +269,19 @@ const Register = () => {
                     </label>
                   </div>
 
-                  <div className="captcha-container">
-                    <div
-                      className="g-recaptcha"
-                      data-sitekey={config.RECAPTCHA_SITE_KEY}
-                    ></div>
+                  <div className="d-flex justify-content-center mb-3">
+                    <ReCAPTCHA
+                      sitekey={config.RECAPTCHA_SITE_KEY}
+                      onChange={(token) => {
+                        setRecaptchaToken(token);
+                        setError("");
+                      }}
+                    />
                   </div>
+
+                  {error && (
+                    <p className="text-danger text-center small mb-2">{error}</p>
+                  )}
 
                   <button type="submit" className="submit-btn" disabled={loading}>
                     {loading ? "Processing..." : "Register"}

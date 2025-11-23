@@ -11,14 +11,13 @@ cd Backend
 pip install -r requirements.txt
 ```
 
-### 2. Start MongoDB
-```bash
-# macOS
-brew services start mongodb-community
-
-# Ubuntu
-sudo systemctl start mongod
+### 2. Configure MongoDB (Atlas)
+- Tạo file `.env` trong thư mục `Backend` và thêm:
 ```
+MONGO_URI="mongodb+srv://nhoangtien86_db_user:<MONGO_PASSWORD>@cluster0.nbex0py.mongodb.net/medicare?retryWrites=true&w=majority&appName=Cluster0"
+DATABASE_NAME=medicare
+```
+- Thay `<MONGO_PASSWORD>` bằng mật khẩu thực tế của bạn.
 
 ### 3. Seed Database
 ```bash
@@ -86,4 +85,3 @@ FLASK_PORT=5000
 - Flask-CORS - CORS support
 - bcrypt - Password hashing
 - PyJWT - JWT tokens
-

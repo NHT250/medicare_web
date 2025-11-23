@@ -191,6 +191,15 @@ def index():
         }
     })
 
+@app.route('/test-db', methods=['GET'])
+def test_db():
+    """Simple endpoint to verify MongoDB connectivity."""
+    try:
+        user_count = db.users.count_documents({})
+        return jsonify({'ok': True, 'user_count': user_count})
+    except Exception as exc:
+        return jsonify({'ok': False, 'error': str(exc)}), 500
+
 # ============ AUTHENTICATION ============
 
 @app.route('/api/auth/register', methods=['POST'])
