@@ -9,7 +9,7 @@ import "../styles/Profile.css";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, updateUser } = useAuth();
+  const { user, isAuthenticated, updateUser, loading: authLoading } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -33,6 +33,10 @@ const Profile = () => {
 
   // Redirect if not authenticated
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
     if (!isAuthenticated) {
       alert("Please login to view profile");
       navigate("/login");
@@ -41,7 +45,7 @@ const Profile = () => {
 
     loadUserData();
     loadOrders();
-  }, [isAuthenticated, navigate]);
+  }, [authLoading, isAuthenticated, navigate]);
 
   const loadUserData = () => {
     if (user) {
