@@ -32,7 +32,7 @@ def connect_db():
         return None, None
 
 client, db = connect_db()
-if not db:
+if db is None:
     raise SystemExit(1)
 
 # Clear existing data
