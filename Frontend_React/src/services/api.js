@@ -38,40 +38,13 @@ api.interceptors.response.use(
 
 export const authAPI = {
   login: async (credentials) => {
-    try {
-      const response = await api.post('/api/auth/login', credentials);
-      return response.data;
-    } catch (error) {
-      console.warn('Auth API unavailable, returning mock login response.');
-      return {
-        token: 'mock-token',
-        user: {
-          _id: 'mock-user-id',
-          name: credentials?.email?.split('@')[0] || 'Guest User',
-          email: credentials?.email || 'guest@medicare.com',
-          role: 'customer'
-        }
-      };
-    }
+    const response = await api.post('/api/auth/login', credentials);
+    return response.data;
   },
 
   register: async (userData) => {
-    try {
-      const response = await api.post('/api/auth/register', userData);
-      return response.data;
-    } catch (error) {
-      console.warn('Auth API unavailable, returning mock registration response.');
-      return {
-        message: 'Registration successful (mock)',
-        user: {
-          _id: 'mock-user-id',
-          email: userData?.email,
-          name: userData?.name,
-          phone: userData?.phone,
-          role: 'customer',
-        },
-      };
-    }
+    const response = await api.post('/api/auth/register', userData);
+    return response.data;
   },
 
   verifyOtp: async (payload) => {

@@ -250,28 +250,30 @@ def register():
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     try:
-        data = request.json or {}
+        data = request.get_json() or {}
+        email = data.get('email')
+        password = data.get('password')
 
-        # Verify reCAPTCHA when enabled to match the registration flow
-        recaptcha_token = data.get('recaptchaToken')
-        if Config.ENABLE_RECAPTCHA and not verify_recaptcha(recaptcha_token):
-            return jsonify({'error': 'reCAPTCHA verification failed'}), 400
+        if not email or not password:
+            return jsonify({'error': 'Email and password are required'}), 400
 
-        # Find user
-        user = db.users.find_one({'email': data['email']})
+        # Verify reCAPTCHA only when enabled
+        if Config.ENABLE_RECAPTCHA:
+            recaptcha_token = data.get('recaptchaToken')
+            if not verify_recaptcha(recaptcha_token):
+                return jsonify({'error': 'reCAPTCHA verification failed'}), 400
+
+        user = db.users.find_one({'email': email})
         if not user:
-            return jsonify({'error': 'Invalid credentials'}), 401
+            return jsonify({'error': 'Invalid email or password'}), 401
 
         if user.get('is_banned'):
             return jsonify({'error': 'Account is banned'}), 403
-        
-        # Check password
-        if not bcrypt.checkpw(data['password'].encode('utf-8'), user['password'].encode('utf-8')):
-            return jsonify({'error': 'Invalid credentials'}), 401
-        
-        # Generate JWT token
-        role = user.get('role', 'customer')
 
+        if not bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
+            return jsonify({'error': 'Invalid email or password'}), 401
+
+        role = user.get('role', 'customer')
         token = jwt.encode({
             'user_id': str(user['_id']),
             'email': user['email'],
@@ -279,17 +281,17 @@ def login():
             'exp': datetime.utcnow() + timedelta(seconds=Config.JWT_EXPIRATION_DELTA)
         }, Config.JWT_SECRET_KEY, algorithm=Config.JWT_ALGORITHM)
 
-        user.pop('password')
+        user.pop('password', None)
 
         return jsonify({
-            'message': 'Login successful',
             'token': token,
-            'role': role,
-            'name': user.get('name', ''),
-            'email': user['email'],
-            'user': serialize_doc(user)
+            'user': {
+                '_id': str(user['_id']),
+                'email': user['email'],
+                'name': user.get('name', ''),
+                'role': role
+            }
         })
-        
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
