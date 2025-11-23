@@ -23,6 +23,10 @@ def token_required(fn: Callable) -> Callable:
 
     @wraps(fn)
     def decorated(*args: Any, **kwargs: Any):
+        # Let CORS preflight through without auth
+        if request.method == "OPTIONS":
+            return ("", 204)
+
         token = _extract_bearer_token()
         if not token:
             return jsonify({"error": "Token is missing"}), 401
@@ -66,4 +70,3 @@ def admin_required(fn: Callable) -> Callable:
         return fn(current_user, *args, **kwargs)
 
     return decorated
-
