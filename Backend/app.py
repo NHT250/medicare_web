@@ -12,13 +12,6 @@ from bson import ObjectId
 from bson.errors import InvalidId
 import json
 import requests
-import random
-import secrets
-import string
-import smtplib
-import ssl
-from email.mime.text import MIMEText
-from email.utils import formataddr
 
 from routes.admin import admin_bp
 from routes.admin_dashboard import dashboard_bp as admin_dashboard_bp
@@ -150,11 +143,6 @@ try:
     db.users.create_index("email", unique=True)
 except Exception as exc:  # pragma: no cover - log but continue startup
     print(f"Warning: failed to ensure unique index on users.email: {exc}")
-try:
-    db.email_verification.create_index("expiresAt", expireAfterSeconds=0)
-    db.email_verification.create_index("email", unique=True)
-except Exception as exc:  # pragma: no cover - log but continue startup
-    print(f"Warning: failed to ensure TTL/unique indexes on email_verification: {exc}")
 app.mongo_db = db
 
 app.register_blueprint(admin_bp)
@@ -187,35 +175,6 @@ def verify_recaptcha(recaptcha_token: str | None) -> bool:
     except Exception as e:
         print(f'reCAPTCHA verification error: {str(e)}')
         return False
-
-
-def generate_otp(length: int = 8) -> str:
-    """Generate a random alphanumeric OTP of the specified length."""
-
-    characters = string.ascii_uppercase + string.digits
-    return ''.join(random.choices(characters, k=length))
-
-
-def send_otp_email(recipient_email: str, otp: str) -> None:
-    """Send the OTP to the user via Gmail SMTP."""
-
-    subject = "Medicare Email Verification OTP"
-    body = (
-        f"Your Medicare verification code is {otp}.\n\n"
-        "This code will expire in 2 minutes."
-    )
-
-    message = MIMEText(body)
-    message['Subject'] = subject
-    message['From'] = formataddr(("Medicare Support", Config.SMTP_FROM_EMAIL))
-    message['To'] = recipient_email
-
-    context = ssl.create_default_context()
-    with smtplib.SMTP(Config.SMTP_HOST, Config.SMTP_PORT) as server:
-        server.starttls(context=context)
-        server.login(Config.SMTP_USERNAME, Config.SMTP_PASSWORD)
-        server.sendmail(Config.SMTP_FROM_EMAIL, [recipient_email], message.as_string())
-
 # ============ ROUTES ============
 
 @app.route('/')
@@ -251,42 +210,31 @@ def register():
         if existing_user:
             return jsonify({'error': 'User already exists and is verified'}), 400
 
-        # Prepare OTP verification record
         hashed_password = bcrypt.hashpw(
             data['password'].encode('utf-8'), bcrypt.gensalt()
         ).decode('utf-8')
 
-        otp_code = generate_otp()
-        verification_record = {
+        user_doc = {
             'email': data['email'],
-            'otp': otp_code,
+            'password': hashed_password,
+            'name': data.get('name', ''),
+            'phone': data.get('phone', ''),
+            'address': data.get('address', {}),
+            'role': 'customer',
+            'is_banned': False,
+            'isVerified': True,
             'createdAt': datetime.utcnow(),
-            'expiresAt': datetime.utcnow() + timedelta(minutes=2),
-            'user_data': {
-                'email': data['email'],
-                'password': hashed_password,
-                'name': data.get('name', ''),
-                'phone': data.get('phone', ''),
-                'address': data.get('address', {}),
-                'role': 'customer',
-                'is_banned': False,
-                'isVerified': False,
-                'createdAt': datetime.utcnow(),
-                'updatedAt': datetime.utcnow()
-            }
+            'updatedAt': datetime.utcnow()
         }
 
-        # Upsert OTP entry for the email
-        db.email_verification.update_one(
-            {'email': data['email']},
-            {'$set': verification_record},
-            upsert=True
-        )
+        result = db.users.insert_one(user_doc)
+        user_doc['_id'] = str(result.inserted_id)
+        user_doc.pop('password', None)
 
-        send_otp_email(data['email'], otp_code)
+        return jsonify({'message': 'Registration successful', 'user': serialize_doc(user_doc)}), 201
 
-        return jsonify({'message': 'OTP sent'}), 200
-
+    except DuplicateKeyError:
+        return jsonify({'error': 'User already exists'}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -346,81 +294,6 @@ def login():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
-@app.route('/api/auth/verify-otp', methods=['POST'])
-def verify_otp():
-    try:
-        data = request.json or {}
-        email = data.get('email')
-        otp = data.get('otp')
-
-        if not email or not otp:
-            return jsonify({'error': 'Email and OTP are required'}), 400
-
-        verification = db.email_verification.find_one({'email': email})
-        if not verification:
-            return jsonify({'error': 'No OTP found for this email'}), 404
-
-        if verification.get('otp') != otp:
-            return jsonify({'error': 'Invalid OTP'}), 400
-
-        if verification.get('expiresAt') < datetime.utcnow():
-            return jsonify({'error': 'OTP has expired'}), 400
-
-        # Avoid duplicate account creation
-        existing_user = db.users.find_one({'email': email})
-        if existing_user:
-            db.email_verification.delete_one({'_id': verification['_id']})
-            existing_user.pop('password', None)
-            return jsonify({'message': 'User already verified', 'user': serialize_doc(existing_user)})
-
-        user_data = verification.get('user_data', {})
-        user_data['isVerified'] = True
-        user_data['updatedAt'] = datetime.utcnow()
-
-        result = db.users.insert_one(user_data)
-        db.email_verification.delete_one({'_id': verification['_id']})
-
-        user_data['_id'] = str(result.inserted_id)
-        user_data.pop('password', None)
-        return jsonify({'message': 'verified', 'user': serialize_doc(user_data)}), 200
-    except DuplicateKeyError:
-        return jsonify({'error': 'User already exists'}), 400
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-
-@app.route('/api/auth/resend-otp', methods=['POST'])
-def resend_otp():
-    try:
-        data = request.json or {}
-        email = data.get('email')
-        if not email:
-            return jsonify({'error': 'Email is required'}), 400
-
-        if db.users.find_one({'email': email}):
-            return jsonify({'error': 'User already verified'}), 400
-
-        verification = db.email_verification.find_one({'email': email})
-        if not verification:
-            return jsonify({'error': 'No pending verification found for this email'}), 404
-
-        otp_code = generate_otp()
-        db.email_verification.update_one(
-            {'email': email},
-            {
-                '$set': {
-                    'otp': otp_code,
-                    'createdAt': datetime.utcnow(),
-                    'expiresAt': datetime.utcnow() + timedelta(minutes=2)
-                }
-            }
-        )
-
-        send_otp_email(email, otp_code)
-        return jsonify({'message': 'OTP resent'}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 # ============ PRODUCTS ============
 
