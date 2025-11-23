@@ -9,7 +9,13 @@ import "../styles/Profile.css";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, updateUser, loading: authLoading } = useAuth();
+  const {
+    user,
+    isAuthenticated,
+    updateUser,
+    logout,
+    loading: authLoading,
+  } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -72,6 +78,12 @@ const Profile = () => {
       }
     } catch (error) {
       console.error("Error loading orders:", error);
+      if (error.response?.status === 401) {
+        alert("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.");
+        logout();
+        navigate("/login");
+        return;
+      }
     }
   };
 
@@ -114,6 +126,12 @@ const Profile = () => {
       }
     } catch (error) {
       console.error("Error updating profile:", error);
+      if (error.response?.status === 401) {
+        alert("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.");
+        logout();
+        navigate("/login");
+        return;
+      }
       const apiMessage =
         error.response?.data?.message || error.response?.data?.error;
       if (apiMessage === "Email already exists") {

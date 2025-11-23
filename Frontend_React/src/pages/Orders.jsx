@@ -50,7 +50,7 @@ const normaliseStatusKey = (status) => {
 
 const Orders = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated, loading: authLoading, logout } = useAuth();
   
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -80,6 +80,12 @@ const Orders = () => {
       }
     } catch (error) {
       console.error('Error loading orders:', error);
+      if (error.response?.status === 401) {
+        alert('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.');
+        logout();
+        navigate('/login');
+        return;
+      }
       alert('Failed to load orders');
     } finally {
       setLoading(false);
