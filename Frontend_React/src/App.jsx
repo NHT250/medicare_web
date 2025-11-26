@@ -17,6 +17,8 @@ import MyOrderDetail from './pages/MyOrderDetail';
 import Profile from './pages/Profile';
 import Forbidden from './pages/Forbidden';
 import PaymentResult from './pages/PaymentResult';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentFail from './pages/PaymentFail';
 
 import AdminLayout from './admin/AdminLayout';
 import { RequireAdmin, RequireSignedIn } from './guards';
@@ -48,6 +50,8 @@ function App() {
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/payment-result" element={<PaymentResult />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/payment-fail" element={<PaymentFail />} />
               <Route
                 path="/checkout"
                 element={
