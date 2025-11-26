@@ -116,11 +116,14 @@ def order_to_dict(order):
         'items': [_normalise_item(item) for item in items],
         'shipping': _normalise_shipping(shipping),
         'payment': _normalise_payment(payment),
-        'subtotal': _to_number(serialized.get('subtotal')),
+        # USD amounts are kept for UI/display; VND is used for VNPAY
+        'subtotal': _to_number(serialized.get('subtotal') or serialized.get('subtotalUsd')),
         'shipping_fee': _to_number(
-            serialized.get('shippingFee') or serialized.get('shipping_fee')
+            serialized.get('shippingFee') or serialized.get('shipping_fee') or serialized.get('shippingUsd')
         ),
-        'total': _to_number(serialized.get('total')),
+        'tax': _to_number(serialized.get('tax') or serialized.get('taxUsd')),
+        'total': _to_number(serialized.get('total') or serialized.get('totalUsd')),
+        'total_vnd': _to_number(serialized.get('totalVnd')),
     }
 
 # Initialize Flask app
@@ -581,6 +584,9 @@ def create_order(current_user):
         shipping_fee = SHIPPING_FLAT_RATE if subtotal > 0 else 0.0
         tax = round(subtotal * TAX_RATE, 2)
         total = round(subtotal + shipping_fee + tax, 2)
+        # Convert USD totals to VND for VNPAY (kept separate from USD display values)
+        exchange_rate = Config.EXCHANGE_RATE_USD_TO_VND
+        total_vnd = int(round(total * exchange_rate))
 
         shipping_info = payload.get('shipping') or {}
         payment_info = payload.get('payment') or {}
@@ -602,6 +608,11 @@ def create_order(current_user):
             'shippingFee': shipping_fee,
             'tax': tax,
             'total': total,
+            'subtotalUsd': subtotal,
+            'shippingUsd': shipping_fee,
+            'taxUsd': tax,
+            'totalUsd': total,
+            'totalVnd': total_vnd,
             'status': 'Pending',
             'createdAt': datetime.utcnow(),
             'updatedAt': datetime.utcnow()
@@ -652,18 +663,10 @@ def initiate_vnpay_payment(current_user):
 
         payload = request.get_json(force=True, silent=True) or {}
         order_identifier = payload.get('orderId')
-        amount_raw = payload.get('amount')
         description = payload.get('description')
 
         if not order_identifier:
             return jsonify({'error': 'orderId is required'}), 400
-        if amount_raw is None:
-            return jsonify({'error': 'amount is required'}), 400
-
-        try:
-            amount = int(round(float(amount_raw)))
-        except (TypeError, ValueError):
-            return jsonify({'error': 'Invalid amount supplied'}), 400
 
         order = None
         try:
@@ -685,14 +688,16 @@ def initiate_vnpay_payment(current_user):
         if str(payment_info.get('method') or '').upper() != 'VNPAY':
             return jsonify({'error': 'Payment method is not VNPAY for this order'}), 400
 
-        expected_total = float(order.get('total') or 0)
-        if amount != int(round(expected_total)):
-            return jsonify({'error': 'Amount does not match order total'}), 400
+        expected_total_usd = float(order.get('total') or order.get('totalUsd') or 0)
+        expected_total_vnd = int(order.get('totalVnd') or round(expected_total_usd * Config.EXCHANGE_RATE_USD_TO_VND))
 
         ip_addr = request.remote_addr or '127.0.0.1'
         order_ref = str(order.get('_id') or order_identifier)
         payment_url = build_payment_url(
-            order_ref, amount, ip_addr, description or f'Thanh toan don hang {order_ref}'
+            order_ref,
+            expected_total_vnd,  # VNPAY expects VND; build_payment_url will x100
+            ip_addr,
+            description or f'Thanh toan don hang {order_ref}',
         )
 
         db.orders.update_one(
@@ -717,6 +722,7 @@ def vnpay_return():
 
     response_code = params.get('vnp_ResponseCode')
     txn_ref = params.get('vnp_TxnRef')
+    # VNPAY returns amount in smallest currency unit (x100); convert back to VND
     amount = int(params.get('vnp_Amount', '0')) // 100
 
     order = None
@@ -732,8 +738,11 @@ def vnpay_return():
     if not order:
         return redirect('http://localhost:5173/payment-result?status=fail&reason=notfound')
 
-    expected_total = float(order.get('total') or 0)
-    if amount != int(round(expected_total)):
+    expected_total_usd = float(order.get('total') or order.get('totalUsd') or 0)
+    expected_total_vnd = int(order.get('totalVnd') or round(expected_total_usd * Config.EXCHANGE_RATE_USD_TO_VND))
+
+    # Compare VNPAY amount in VND against stored VND total
+    if amount != expected_total_vnd:
         return redirect(
             f'http://localhost:5173/payment-result?status=fail&orderId={txn_ref}&amount={amount}&reason=amount'
         )

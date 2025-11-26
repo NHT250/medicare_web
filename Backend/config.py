@@ -30,6 +30,9 @@ class Config:
     if ENABLE_RECAPTCHA and not RECAPTCHA_SECRET_KEY:
         raise RuntimeError('Missing reCAPTCHA secret key while reCAPTCHA is enabled')
     
+    # Currency
+    EXCHANGE_RATE_USD_TO_VND = float(os.getenv('EXCHANGE_RATE_USD_TO_VND', 24000))
+
     # VNPAY configuration
     VNP_TMN_CODE = os.getenv('VNP_TMN_CODE')
     VNP_HASH_SECRET = os.getenv('VNP_HASH_SECRET')
