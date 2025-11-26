@@ -17,6 +17,7 @@ import CustomerOrders from './pages/Orders';
 import MyOrderDetail from './pages/MyOrderDetail';
 import Profile from './pages/Profile';
 import Forbidden from './pages/Forbidden';
+import PaymentResult from './pages/PaymentResult';
 
 import AdminLayout from './admin/AdminLayout';
 import { RequireAdmin, RequireSignedIn } from './guards';
@@ -48,6 +49,7 @@ function App() {
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />
+              <Route path="/payment-result" element={<PaymentResult />} />
               <Route
                 path="/checkout"
                 element={

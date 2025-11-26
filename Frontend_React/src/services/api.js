@@ -252,6 +252,15 @@ export const ordersAPI = {
   }
 };
 
+// ========== PAYMENT APIs ==========
+
+export const paymentAPI = {
+  createVnpayPayment: async (payload) => {
+    const response = await api.post('/api/payment/vnpay', payload);
+    return response.data;
+  }
+};
+
 // ========== USERS APIs ==========
 
 export const usersAPI = {
