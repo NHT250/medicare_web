@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
-import { ordersAPI } from '../services/api';
+import { ordersAPI, paymentAPI } from '../services/api';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import '../styles/Checkout.css';
@@ -12,10 +12,11 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { cartItems, cartTotal, clearCart } = useCart();
   const { user, isAuthenticated } = useAuth();
-  
+
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('cod');
 
   // Shipping form state
   const [shippingInfo, setShippingInfo] = useState({
@@ -77,6 +78,8 @@ const Checkout = () => {
 
     try {
       // Prepare order data
+      const paymentMethodValue = paymentMethod === 'vnpay' ? 'VNPAY' : 'COD';
+
       const orderData = {
         items: cartItems.map(item => ({
           productId: item.id,
@@ -87,7 +90,8 @@ const Checkout = () => {
         })),
         shipping: shippingInfo,
         payment: {
-          method: 'COD'
+          method: paymentMethodValue,
+          status: 'Pending'
         },
         subtotal: cartTotal,
         shippingFee: shippingFee,
@@ -97,16 +101,33 @@ const Checkout = () => {
 
       // Create order
       const response = await ordersAPI.createOrder(orderData);
-      
+
       if (response.order) {
-        setOrderId(response.order.orderId);
-        setOrderPlaced(true);
-        clearCart();
-        
-        // Show success for 3 seconds then redirect to orders
-        setTimeout(() => {
-          navigate('/orders');
-        }, 3000);
+        const createdOrder = response.order;
+        setOrderId(createdOrder.orderId);
+
+        if (paymentMethod === 'cod') {
+          setOrderPlaced(true);
+          clearCart();
+
+          // Show success for 3 seconds then redirect to orders
+          setTimeout(() => {
+            navigate('/orders');
+          }, 3000);
+        } else {
+          const payResponse = await paymentAPI.createVnpayPayment({
+            orderId: createdOrder._id || createdOrder.orderId,
+            amount: createdOrder.total || total,
+            description: `Thanh toan don hang ${createdOrder._id || createdOrder.orderId}`
+          });
+
+          if (payResponse.paymentUrl) {
+            clearCart();
+            window.location.href = payResponse.paymentUrl;
+          } else {
+            alert('Không thể tạo liên kết thanh toán. Vui lòng thử lại.');
+          }
+        }
       }
     } catch (error) {
       console.error('Error placing order:', error);
@@ -257,23 +278,40 @@ const Checkout = () => {
                     Payment Information
                   </h5>
                 </div>
-                <div className="card-body">
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="radio"
-                      name="paymentMethod"
-                      id="paymentCod"
-                      checked
-                      readOnly
-                    />
+              <div className="card-body">
+                  <div>
                     <label className="form-check-label" htmlFor="paymentCod">
+                      <input
+                        className="form-check-input me-2"
+                        type="radio"
+                        name="paymentMethod"
+                        id="paymentCod"
+                        value="cod"
+                        checked={paymentMethod === 'cod'}
+                        onChange={() => setPaymentMethod('cod')}
+                      />
                       <i className="fas fa-money-bill-wave me-2"></i>
                       Cash on Delivery
                     </label>
                   </div>
-                  <p className="text-muted mt-2 mb-0">
-                    Bạn sẽ thanh toán trực tiếp cho nhân viên giao hàng khi nhận hàng (Cash on Delivery).
+                  <div className="mt-2">
+                    <label className="form-check-label" htmlFor="paymentVnpay">
+                      <input
+                        className="form-check-input me-2"
+                        type="radio"
+                        name="paymentMethod"
+                        id="paymentVnpay"
+                        value="vnpay"
+                        checked={paymentMethod === 'vnpay'}
+                        onChange={() => setPaymentMethod('vnpay')}
+                      />
+                      Pay with VNPAY
+                    </label>
+                  </div>
+                  <p className="text-muted mt-2 mb-0" style={{ fontSize: 12 }}>
+                    {paymentMethod === 'cod'
+                      ? 'Bạn sẽ thanh toán trực tiếp cho nhân viên giao hàng (Cash on Delivery).'
+                      : 'Bạn sẽ được chuyển sang cổng thanh toán VNPAY để thanh toán online.'}
                   </p>
                 </div>
               </div>

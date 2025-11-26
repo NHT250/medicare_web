@@ -1,6 +1,6 @@
 # Medicare Backend API - Flask Application
 import os
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, redirect, request
 from flask_cors import CORS
 from pymongo import ASCENDING, DESCENDING, MongoClient
 from pymongo.errors import DuplicateKeyError
@@ -19,6 +19,7 @@ from routes.admin_orders import admin_orders_bp
 from routes.admin_uploads import admin_uploads_bp
 from utils.auth import token_required
 from utils.helpers import serialize_doc
+from vnpay_config import build_payment_url, verify_vnpay_signature
 
 SHIPPING_FLAT_RATE = 5.0
 TAX_RATE = 0.08
@@ -588,12 +589,15 @@ def create_order(current_user):
         if not isinstance(payment_info, dict):
             payment_info = {}
 
+        payment_method = str(payment_info.get('method') or 'COD').upper()
+        payment_status = str(payment_info.get('status') or 'Pending').title()
+
         order = {
             'orderId': order_id,
             'userId': user_id,
             'items': validated_items,
             'shipping': shipping_info,
-            'payment': payment_info,
+            'payment': {'method': payment_method, 'status': payment_status},
             'subtotal': subtotal,
             'shippingFee': shipping_fee,
             'tax': tax,
@@ -637,6 +641,114 @@ def create_order(current_user):
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/payment/vnpay', methods=['POST'])
+@token_required
+def initiate_vnpay_payment(current_user):
+    try:
+        payload = request.get_json(force=True, silent=True) or {}
+        order_identifier = payload.get('orderId')
+        amount_raw = payload.get('amount')
+        description = payload.get('description')
+
+        if not order_identifier:
+            return jsonify({'error': 'orderId is required'}), 400
+        if amount_raw is None:
+            return jsonify({'error': 'amount is required'}), 400
+
+        try:
+            amount = int(round(float(amount_raw)))
+        except (TypeError, ValueError):
+            return jsonify({'error': 'Invalid amount supplied'}), 400
+
+        order = None
+        try:
+            order_object_id = ObjectId(order_identifier)
+            order = db.orders.find_one({'_id': order_object_id})
+        except (InvalidId, TypeError):
+            order = db.orders.find_one({'orderId': order_identifier})
+
+        if not order:
+            return jsonify({'error': 'Order not found'}), 404
+
+        user_id = str(current_user['_id'])
+        if order.get('userId') != user_id:
+            return jsonify({'error': 'You do not have permission to pay for this order'}), 403
+
+        payment_info = order.get('payment') or {}
+        if str(payment_info.get('status') or '').lower() == 'paid':
+            return jsonify({'error': 'Order has already been paid'}), 400
+
+        expected_total = float(order.get('total') or 0)
+        if amount != int(round(expected_total)):
+            return jsonify({'error': 'Amount does not match order total'}), 400
+
+        ip_addr = request.remote_addr or '127.0.0.1'
+        order_ref = str(order.get('_id') or order_identifier)
+        payment_url = build_payment_url(
+            order_ref, amount, ip_addr, description or f'Thanh toan don hang {order_ref}'
+        )
+
+        db.orders.update_one(
+            {'_id': order['_id']},
+            {'$set': {'payment.method': 'VNPAY', 'payment.status': 'Pending', 'updatedAt': datetime.utcnow()}},
+        )
+
+        return jsonify({'paymentUrl': payment_url, 'orderId': order_ref})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/vnpay_return', methods=['GET'])
+def vnpay_return():
+    params = request.args.to_dict()
+
+    if not verify_vnpay_signature(params):
+        return redirect('http://localhost:5173/payment-result?status=fail&reason=checksum')
+
+    response_code = params.get('vnp_ResponseCode')
+    txn_ref = params.get('vnp_TxnRef')
+    amount = int(params.get('vnp_Amount', '0')) // 100
+
+    order = None
+    try:
+        if txn_ref:
+            order = db.orders.find_one({'_id': ObjectId(txn_ref)})
+    except (InvalidId, TypeError):
+        order = None
+
+    if not order and txn_ref:
+        order = db.orders.find_one({'orderId': txn_ref})
+
+    if not order:
+        return redirect('http://localhost:5173/payment-result?status=fail&reason=notfound')
+
+    expected_total = float(order.get('total') or 0)
+    if amount != int(round(expected_total)):
+        return redirect(
+            f'http://localhost:5173/payment-result?status=fail&orderId={txn_ref}&amount={amount}&reason=amount'
+        )
+
+    is_success = response_code == '00'
+    payment_status = 'Paid' if is_success else 'Failed'
+    status_label = 'Paid' if is_success else 'Payment Failed'
+
+    db.orders.update_one(
+        {'_id': order['_id']},
+        {
+            '$set': {
+                'payment.method': 'VNPAY',
+                'payment.status': payment_status,
+                'payment.transactionId': params.get('vnp_TransactionNo'),
+                'status': status_label,
+                'updatedAt': datetime.utcnow(),
+            }
+        },
+    )
+
+    redirect_url = f"http://localhost:5173/payment-result?status={'success' if is_success else 'fail'}&orderId={txn_ref}&amount={amount}"
+    return redirect(redirect_url)
 
 
 @app.route('/api/orders/<order_id>', methods=['GET'])
