@@ -466,35 +466,3 @@ def update_user_role(current_user, user_id):
     updated = db.users.find_one({"_id": object_id})
     updated.pop("password", None)
     return jsonify({"message": "Role updated", "user": serialize_doc(updated)})
-
-
-@admin_bp.route("/users/<user_id>/reset-password", methods=["POST"])
-@token_required
-@admin_required
-def reset_user_password(current_user, user_id):
-    db = _get_db()
-    object_id = _parse_object_id(user_id)
-    if not object_id:
-        return jsonify({"error": "User not found"}), 404
-
-    if str(current_user["_id"]) == user_id:
-        return jsonify({"error": "You cannot reset your own password"}), 400
-
-    user = db.users.find_one({"_id": object_id})
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-
-    temp_password = "".join(random.choices(string.ascii_letters + string.digits, k=10))
-    hashed = bcrypt.hashpw(temp_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-
-    db.users.update_one(
-        {"_id": object_id},
-        {"$set": {"password": hashed, "updatedAt": datetime.utcnow()}},
-    )
-
-    return jsonify(
-        {
-            "message": "Temporary password generated",
-            "tempPassword": temp_password,
-        }
-    )

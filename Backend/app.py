@@ -217,9 +217,7 @@ def register():
         if missing_fields:
             return jsonify({'error': f"Missing fields: {', '.join(missing_fields)}"}), 400
 
-        # Verify reCAPTCHA when enabled
-        if Config.ENABLE_RECAPTCHA and not verify_recaptcha(data.get('recaptcha_token')):
-            return jsonify({'error': 'reCAPTCHA verification failed'}), 400
+
 
         existing_user = db.users.find_one({'email': data['email']})
         if existing_user:
@@ -259,24 +257,26 @@ def login():
         data = request.get_json() or {}
         email = data.get('email')
         password = data.get('password')
+        
+        print(f"🔐 LOGIN REQUEST: email={email}, password_length={len(password) if password else 0}")
 
         if not email or not password:
+            print(f"❌ Missing fields: email={email}, password={password}")
             return jsonify({'error': 'Email and password are required'}), 400
 
-        # Verify reCAPTCHA only when enabled
-        if Config.ENABLE_RECAPTCHA:
-            recaptcha_token = data.get('recaptchaToken')
-            if not verify_recaptcha(recaptcha_token):
-                return jsonify({'error': 'reCAPTCHA verification failed'}), 400
+
 
         user = db.users.find_one({'email': email})
         if not user:
+            print(f"❌ User not found: {email}")
             return jsonify({'error': 'Invalid email or password'}), 401
 
         if user.get('is_banned'):
+            print(f"❌ User banned: {email}")
             return jsonify({'error': 'Account is banned'}), 403
 
         if not bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
+            print(f"❌ Invalid password for: {email}")
             return jsonify({'error': 'Invalid email or password'}), 401
 
         role = user.get('role', 'customer')
@@ -288,6 +288,8 @@ def login():
         }, Config.JWT_SECRET_KEY, algorithm=Config.JWT_ALGORITHM)
 
         user.pop('password', None)
+        
+        print(f"✅ LOGIN SUCCESSFUL: {email}, role={role}")
 
         return jsonify({
             'token': token,
@@ -299,6 +301,7 @@ def login():
             }
         })
     except Exception as e:
+        print(f"❌ LOGIN ERROR: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 
@@ -585,7 +588,10 @@ def create_order(current_user):
         tax = round(subtotal * TAX_RATE, 2)
         total = round(subtotal + shipping_fee + tax, 2)
         # Convert USD totals to VND for VNPAY (kept separate from USD display values)
-        exchange_rate = Config.EXCHANGE_RATE_USD_TO_VND
+        # Convert USD totals to VND for VNPAY (kept separate from USD display values)
+        # NOTE: EXCHANGE_RATE is an integer VND per 1 USD, configured in `config.py`.
+        exchange_rate = Config.EXCHANGE_RATE
+        # total_vnd stored as integer VND
         total_vnd = int(round(total * exchange_rate))
 
         shipping_info = payload.get('shipping') or {}
@@ -654,6 +660,106 @@ def create_order(current_user):
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/payment/vnpay/create', methods=['POST'])
+@token_required
+def create_vnpay_payment(current_user):
+    """
+    Tạo URL thanh toán VNPAY
+    Frontend sẽ gọi endpoint này sau khi tạo order thành công
+    """
+    try:
+        if not Config.VNP_TMN_CODE or not Config.VNP_HASH_SECRET:
+            print("❌ VNPAY not configured")
+            return jsonify({'error': 'VNPAY is not configured'}), 503
+
+        payload = request.get_json(force=True, silent=True) or {}
+        order_identifier = payload.get('orderId')
+        amount = payload.get('amount')  # Amount in VND
+        description = payload.get('description')
+
+        print(f"🔗 VNPAY Create Payment: orderId={order_identifier}, amount={amount}")
+
+        if not order_identifier or not amount:
+            print("❌ Missing orderId or amount")
+            return jsonify({'error': 'orderId and amount are required'}), 400
+
+        # Find order in database
+        order = None
+        try:
+            order_object_id = ObjectId(order_identifier)
+            order = db.orders.find_one({'_id': order_object_id})
+        except (InvalidId, TypeError):
+            order = db.orders.find_one({'orderId': order_identifier})
+
+        if not order:
+            print(f"❌ Order not found: {order_identifier}")
+            return jsonify({'error': 'Order not found'}), 404
+
+        user_id = str(current_user['_id'])
+        if order.get('userId') != user_id:
+            print(f"❌ Permission denied for user {user_id}")
+            return jsonify({'error': 'You do not have permission to pay for this order'}), 403
+
+        # Check if already paid
+        payment_info = order.get('payment') or {}
+        if str(payment_info.get('status') or '').lower() == 'paid':
+            print("❌ Order already paid")
+            return jsonify({'error': 'Order has already been paid'}), 400
+        
+        if str(payment_info.get('method') or '').upper() != 'VNPAY':
+            print("❌ Payment method is not VNPAY")
+            return jsonify({'error': 'Payment method is not VNPAY for this order'}), 400
+
+        # Build VNPAY payment URL
+        ip_addr = request.remote_addr or '127.0.0.1'
+        order_ref = str(order.get('_id') or order_identifier)
+        
+        # Determine amount to charge in VND. Prefer stored order.totalVnd; if missing, compute and save it.
+        order_total_vnd = order.get('totalVnd')
+        if not order_total_vnd:
+            try:
+                usd_total = float(order.get('total') or order.get('totalUsd') or 0)
+            except Exception:
+                usd_total = 0
+            order_total_vnd = int(round(usd_total * Config.EXCHANGE_RATE))
+            # Persist computed VND total back to order document for future checks
+            db.orders.update_one({'_id': order['_id']}, {'$set': {'totalVnd': order_total_vnd}})
+
+        print(f"📝 Building VNPAY URL: orderId={order_ref}, amount_vnd={order_total_vnd}, ip={ip_addr}")
+
+        # build_payment_url expects amount in VND (it multiplies by 100 internally to produce vnp_Amount)
+        payment_url = build_payment_url(
+            order_ref,
+            int(order_total_vnd),
+            ip_addr,
+            description or f'Thanh toan don hang {order_ref}',
+        )
+
+        # Update order payment status
+        db.orders.update_one(
+            {'_id': order['_id']},
+            {'$set': {
+                'payment.method': 'VNPAY',
+                'payment.status': 'Pending',
+                'updatedAt': datetime.utcnow()
+            }},
+        )
+
+        print(f"✅ Payment URL created: {payment_url[:50]}...")
+        return jsonify({
+            'payment_url': payment_url,
+            'paymentUrl': payment_url,  # Support both snake_case and camelCase
+            'orderId': order_ref,
+            'amount_vnd': order_total_vnd
+        }), 200
+
+    except Exception as e:
+        print(f"❌ VNPAY Payment Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/payment/vnpay', methods=['POST'])
 @token_required
 def initiate_vnpay_payment(current_user):
@@ -689,7 +795,8 @@ def initiate_vnpay_payment(current_user):
             return jsonify({'error': 'Payment method is not VNPAY for this order'}), 400
 
         expected_total_usd = float(order.get('total') or order.get('totalUsd') or 0)
-        expected_total_vnd = int(order.get('totalVnd') or round(expected_total_usd * Config.EXCHANGE_RATE_USD_TO_VND))
+        # Use canonical exchange rate in Config.EXCHANGE_RATE (VND per 1 USD)
+        expected_total_vnd = int(order.get('totalVnd') or round(expected_total_usd * Config.EXCHANGE_RATE))
 
         ip_addr = request.remote_addr or '127.0.0.1'
         order_ref = str(order.get('_id') or order_identifier)
@@ -723,7 +830,7 @@ def vnpay_return():
     response_code = params.get('vnp_ResponseCode')
     txn_ref = params.get('vnp_TxnRef')
     # VNPAY returns amount in smallest currency unit (x100); convert back to VND
-    amount = int(params.get('vnp_Amount', '0')) // 100
+    paid_vnd = int(params.get('vnp_Amount', '0')) // 100
 
     order = None
     try:
@@ -739,12 +846,13 @@ def vnpay_return():
         return redirect('http://localhost:5173/payment-result?status=fail&reason=notfound')
 
     expected_total_usd = float(order.get('total') or order.get('totalUsd') or 0)
-    expected_total_vnd = int(order.get('totalVnd') or round(expected_total_usd * Config.EXCHANGE_RATE_USD_TO_VND))
+    # Use canonical exchange rate in Config.EXCHANGE_RATE when deriving expected VND total
+    expected_total_vnd = int(order.get('totalVnd') or round(expected_total_usd * Config.EXCHANGE_RATE))
 
-    # Compare VNPAY amount in VND against stored VND total
-    if amount != expected_total_vnd:
+    # Compare VNPAY paid VND amount against stored VND total
+    if paid_vnd != expected_total_vnd:
         return redirect(
-            f'http://localhost:5173/payment-result?status=fail&orderId={txn_ref}&amount={amount}&reason=amount'
+            f'http://localhost:5173/payment-result?status=fail&orderId={txn_ref}&amount={paid_vnd}&reason=amount'
         )
 
     is_success = response_code == '00'
@@ -764,7 +872,7 @@ def vnpay_return():
         },
     )
 
-    redirect_url = f"http://localhost:5173/payment-result?status={'success' if is_success else 'fail'}&orderId={txn_ref}&amount={amount}"
+    redirect_url = f"http://localhost:5173/payment-result?status={'success' if is_success else 'fail'}&orderId={txn_ref}&amount={paid_vnd}"
     return redirect(redirect_url)
 
 

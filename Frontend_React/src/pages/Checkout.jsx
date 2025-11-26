@@ -1,4 +1,4 @@
-// Checkout Page Component
+// Checkout Page Component - Thanh toán COD + VNPAY
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
@@ -77,7 +77,7 @@ const Checkout = () => {
     setLoading(true);
 
     try {
-      // Prepare order data
+      // Chuẩn bị dữ liệu đơn hàng
       const paymentMethodValue = paymentMethod === 'vnpay' ? 'VNPAY' : 'COD';
 
       const orderData = {
@@ -99,39 +99,54 @@ const Checkout = () => {
         total: total
       };
 
-      // Create order
+      console.log("📦 Creating order with data:", orderData);
+
+      // Step 1: Tạo đơn hàng trên backend
       const response = await ordersAPI.createOrder(orderData);
 
       if (response.order) {
         const createdOrder = response.order;
-        setOrderId(createdOrder.orderId);
+        const orderId = createdOrder._id || createdOrder.orderId;
+        setOrderId(orderId);
 
         if (paymentMethod === 'cod') {
+          // ========== COD Flow ==========
+          console.log("💵 COD Payment selected - Order created successfully");
           setOrderPlaced(true);
           clearCart();
 
-          // Show success for 3 seconds then redirect to orders
+          // Chuyển hướng sang trang đơn hàng sau 3s
           setTimeout(() => {
             navigate('/orders');
           }, 3000);
         } else {
-          const payResponse = await paymentAPI.createVnpayPayment({
-            orderId: createdOrder._id || createdOrder.orderId,
-            amount: createdOrder.total || total,
-            description: `Thanh toan don hang ${createdOrder._id || createdOrder.orderId}`
+          // ========== VNPAY Flow ==========
+          console.log("💳 VNPAY Payment - Requesting payment URL from backend");
+          
+          // Step 2: Gọi API tạo URL thanh toán VNPAY
+          const paymentResponse = await paymentAPI.createVnpayPayment({
+            orderId: orderId,
+            amount: Math.round(createdOrder.total * 100) || Math.round(total * 100), // VNPAY tính bằng VND
+            returnUrl: `${window.location.origin}/payment-result`, // URL trả về sau khi thanh toán
+            description: `Thanh toan don hang ${orderId}`
           });
 
-          if (payResponse.paymentUrl) {
+          if (paymentResponse.payment_url || paymentResponse.paymentUrl) {
+            console.log("✅ Payment URL received, redirecting to VNPAY gateway");
             clearCart();
-            window.location.href = payResponse.paymentUrl;
+            
+            // Step 3: Redirect sang cổng VNPAY
+            window.location.href = paymentResponse.payment_url || paymentResponse.paymentUrl;
           } else {
+            console.error("❌ No payment URL in response:", paymentResponse);
             alert('Không thể tạo liên kết thanh toán. Vui lòng thử lại.');
           }
         }
       }
     } catch (error) {
-      console.error('Error placing order:', error);
-      alert('Failed to place order. Please try again.');
+      console.error('❌ Error placing order:', error);
+      const errorMsg = error.response?.data?.error || error.message || 'Failed to place order';
+      alert(`Lỗi: ${errorMsg}`);
     } finally {
       setLoading(false);
     }
@@ -275,11 +290,12 @@ const Checkout = () => {
                 <div className="card-header">
                   <h5 className="mb-0">
                     <i className="fas fa-money-bill-wave me-2"></i>
-                    Payment Information
+                    Phương thức thanh toán
                   </h5>
                 </div>
               <div className="card-body">
-                  <div>
+                  {/* COD Option */}
+                  <div className="payment-option mb-3">
                     <label className="form-check-label" htmlFor="paymentCod">
                       <input
                         className="form-check-input me-2"
@@ -290,11 +306,18 @@ const Checkout = () => {
                         checked={paymentMethod === 'cod'}
                         onChange={() => setPaymentMethod('cod')}
                       />
-                      <i className="fas fa-money-bill-wave me-2"></i>
-                      Cash on Delivery
+                      <i className="fas fa-money-bill-wave me-2 text-warning"></i>
+                      <strong>Thanh toán khi nhận hàng (COD)</strong>
                     </label>
+                    {paymentMethod === 'cod' && (
+                      <div className="alert alert-info mt-2 mb-0" role="alert">
+                        <small>Bạn sẽ thanh toán trực tiếp cho nhân viên giao hàng.</small>
+                      </div>
+                    )}
                   </div>
-                  <div className="mt-2">
+
+                  {/* VNPAY Option */}
+                  <div className="payment-option">
                     <label className="form-check-label" htmlFor="paymentVnpay">
                       <input
                         className="form-check-input me-2"
@@ -305,14 +328,15 @@ const Checkout = () => {
                         checked={paymentMethod === 'vnpay'}
                         onChange={() => setPaymentMethod('vnpay')}
                       />
-                      Pay with VNPAY
+                      <i className="fas fa-credit-card me-2 text-success"></i>
+                      <strong>Thanh toán qua VNPAY</strong>
                     </label>
+                    {paymentMethod === 'vnpay' && (
+                      <div className="alert alert-success mt-2 mb-0" role="alert">
+                        <small>Bạn sẽ được chuyển sang cổng VNPAY để thanh toán an toàn.</small>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-muted mt-2 mb-0" style={{ fontSize: 12 }}>
-                    {paymentMethod === 'cod'
-                      ? 'Ban se thanh toan truc tiep cho nhan vien giao hang (Cash on Delivery).'
-                      : 'Ban se duoc chuyen sang cong thanh toan VNPAY de thanh toan online.'}
-                  </p>
                 </div>
               </div>
               {/* Place Order Button */}

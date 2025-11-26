@@ -8,7 +8,6 @@ import { CartProvider } from './contexts/CartContext';
 import Homepage from './pages/Homepage';
 import Auth from './pages/Auth';
 import Register from './pages/Register';
-import VerifyOtp from './pages/VerifyOtp';
 import ProductsPage from './pages/Products';
 import Cart from './pages/Cart';
 import ProductDetail from './pages/ProductDetail';
@@ -45,7 +44,6 @@ function App() {
               <Route path="/" element={<Homepage />} />
               <Route path="/login" element={<Auth />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/verify-otp" element={<VerifyOtp />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />

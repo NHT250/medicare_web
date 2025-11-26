@@ -31,7 +31,11 @@ class Config:
         raise RuntimeError('Missing reCAPTCHA secret key while reCAPTCHA is enabled')
     
     # Currency
-    EXCHANGE_RATE_USD_TO_VND = float(os.getenv('EXCHANGE_RATE_USD_TO_VND', 24000))
+    # Exchange rate used to convert USD -> VND for payment processing (default: 25,000 VND = 1 USD)
+    # Use `EXCHANGE_RATE` as the canonical integer exchange rate in VND per 1 USD.
+    EXCHANGE_RATE = int(os.getenv('EXCHANGE_RATE', 25000))
+    # Backwards-compatible name (float) - keep for any existing references
+    EXCHANGE_RATE_USD_TO_VND = float(os.getenv('EXCHANGE_RATE_USD_TO_VND', EXCHANGE_RATE))
 
     # VNPAY configuration
     VNP_TMN_CODE = os.getenv('VNP_TMN_CODE')
@@ -55,16 +59,7 @@ class Config:
         'http://127.0.0.1:5500',      # Live Server
         'http://localhost:5500',      # Live Server
         'http://localhost:5173',      # Vite (React)
-        'http://127.0.0.1:5173'       # Vite (React)
+        'http://127.0.0.1:5173',      # Vite (React)
+        '*'                           # Allow all (for development)
     ]
-
-    # Email (SMTP - Gmail) configuration
-    SMTP_HOST = os.getenv('SMTP_HOST', 'smtp.gmail.com')
-    SMTP_PORT = int(os.getenv('SMTP_PORT', 587))
-    SMTP_USERNAME = os.getenv('SMTP_USERNAME')
-    SMTP_PASSWORD = os.getenv('SMTP_PASSWORD')
-    SMTP_FROM_EMAIL = os.getenv('SMTP_FROM_EMAIL', SMTP_USERNAME)
-
-    if not SMTP_USERNAME or not SMTP_PASSWORD:
-        print('Warning: SMTP credentials are missing; email features are disabled.')
 

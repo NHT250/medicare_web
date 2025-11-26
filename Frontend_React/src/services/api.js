@@ -38,34 +38,30 @@ api.interceptors.response.use(
 
 export const authAPI = {
   login: async (credentials) => {
-    const response = await api.post('/api/auth/login', credentials);
-    return response.data;
+    try {
+      console.log("🔗 API: POST /api/auth/login", credentials);
+      const response = await api.post('/api/auth/login', credentials);
+      console.log("✅ API Response received:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ API Error:", error.response?.data || error.message);
+      throw error;
+    }
   },
 
   register: async (userData) => {
-    const response = await api.post('/api/auth/register', userData);
-    return response.data;
-  },
-
-  verifyOtp: async (payload) => {
     try {
-      const response = await api.post('/api/auth/verify-otp', payload);
+      console.log("🔗 API: POST /api/auth/register", userData);
+      const response = await api.post('/api/auth/register', userData);
+      console.log("✅ API Response received:", response.data);
       return response.data;
     } catch (error) {
-      console.warn('Verify OTP API unavailable; OTP verification is disabled.');
-      return { message: 'OTP verification not required.' };
+      console.error("❌ API Error:", error.response?.data || error.message);
+      throw error;
     }
   },
 
-  resendOtp: async (payload) => {
-    try {
-      const response = await api.post('/api/auth/resend-otp', payload);
-      return response.data;
-    } catch (error) {
-      console.warn('Resend OTP API unavailable; OTP verification is disabled.');
-      return { message: 'OTP verification not required.' };
-    }
-  },
+
 
   logout: () => {
     localStorage.removeItem('medicare_token');
@@ -256,8 +252,16 @@ export const ordersAPI = {
 
 export const paymentAPI = {
   createVnpayPayment: async (payload) => {
-    const response = await api.post('/api/payment/vnpay', payload);
-    return response.data;
+    try {
+      console.log("🔗 API: POST /api/payment/vnpay/create", payload);
+      // Đây là endpoint tạo URL thanh toán VNPAY từ backend
+      const response = await api.post('/api/payment/vnpay/create', payload);
+      console.log("✅ VNPAY Payment URL received:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ VNPAY API Error:", error.response?.data || error.message);
+      throw error;
+    }
   }
 };
 

@@ -1,28 +1,21 @@
 // Auth Page - Login & Register
 // npm install react-google-recaptcha
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import config from "../config";
 import "../styles/Auth.css";
-import ReCAPTCHA from "react-google-recaptcha";
 
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, register, isAuthenticated, role, user } = useAuth();
 
-  const SITE_KEY = config.RECAPTCHA_SITE_KEY;
-  const ENABLE_RECAPTCHA = Boolean(SITE_KEY);
-  const loginRecaptchaRef = useRef(null);
-  const registerRecaptchaRef = useRef(null);
+
 
   const [activeTab, setActiveTab] = useState("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [recaptchaToken, setRecaptchaToken] = useState(null);
-  const [registerRecaptchaToken, setRegisterRecaptchaToken] = useState(null);
 
   // Login form state
   const [loginForm, setLoginForm] = useState({
@@ -69,35 +62,18 @@ const Auth = () => {
       return;
     }
 
-    if (ENABLE_RECAPTCHA) {
-      if (!loginRecaptchaRef.current) {
-        console.error("reCAPTCHA not ready");
-        setError('Vui lòng xác nhận "I\'m not a robot".');
-        return;
-      }
-      try {
-        const token = await loginRecaptchaRef.current.executeAsync();
-        setRecaptchaToken(token);
-      } catch (err) {
-        console.error("reCAPTCHA execute failed", err);
-        setError('Vui lòng xác nhận "I\'m not a robot".');
-        return;
-      } finally {
-        if (loginRecaptchaRef.current?.reset) {
-          loginRecaptchaRef.current.reset();
-        }
-      }
-    }
-
     setLoading(true);
 
     try {
+      console.log("🔐 Login attempt with:", { email: loginForm.email });
       const result = await login({
         ...loginForm,
-        recaptchaToken: ENABLE_RECAPTCHA ? recaptchaToken : undefined,
       });
 
+      console.log("✅ Login result:", result);
+
       if (result.success) {
+        console.log("✅ Login successful, redirecting...");
         alert("Login successful! Redirecting...");
         const destination =
           result.data.role === "admin"
@@ -105,11 +81,22 @@ const Auth = () => {
             : location.state?.from || "/";
         navigate(destination);
       } else {
+        console.error("❌ Login failed:", result.error);
         setError(result.error);
       }
-      // eslint-disable-next-line no-unused-vars
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      console.error("Login error details:", err);
+      if (err.code === "ECONNABORTED" || err.message === "Timeout") {
+        setError("Connection timeout. Is the backend running at http://localhost:5000?");
+      } else if (err.response?.status === 401) {
+        setError("Invalid email or password");
+      } else if (err.response?.status === 400) {
+        setError(err.response?.data?.error || "Invalid credentials");
+      } else if (!err.response) {
+        setError("Cannot connect to server. Check your internet or backend status.");
+      } else {
+        setError(err.response?.data?.error || "An error occurred. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -165,32 +152,13 @@ const Auth = () => {
       return;
     }
 
-    if (ENABLE_RECAPTCHA) {
-      if (!registerRecaptchaRef.current) {
-        console.error("reCAPTCHA not ready");
-        setError("Please complete the reCAPTCHA");
-        return;
-      }
-      try {
-        const token = await registerRecaptchaRef.current.executeAsync();
-        setRegisterRecaptchaToken(token);
-      } catch (err) {
-        console.error("reCAPTCHA execute failed", err);
-        setError("Please complete the reCAPTCHA");
-        return;
-      } finally {
-        if (registerRecaptchaRef.current?.reset) {
-          registerRecaptchaRef.current.reset();
-        }
-      }
-    }
+
 
     setLoading(true);
 
     try {
       const result = await register({
         ...registerForm,
-        recaptcha_token: ENABLE_RECAPTCHA ? registerRecaptchaToken : undefined,
       });
 
       if (result.success) {
@@ -209,9 +177,17 @@ const Auth = () => {
       } else {
         setError(result.error);
       }
-      // eslint-disable-next-line no-unused-vars
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      console.error("Register error details:", err);
+      if (err.code === "ECONNABORTED" || err.message === "Timeout") {
+        setError("Connection timeout. Is the backend running at http://localhost:5000?");
+      } else if (err.response?.status === 400) {
+        setError(err.response?.data?.error || "Email already exists or invalid data");
+      } else if (!err.response) {
+        setError("Cannot connect to server. Check your internet or backend status.");
+      } else {
+        setError(err.response?.data?.error || "An error occurred. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -347,7 +323,7 @@ const Auth = () => {
 
                     <div className="form-options">
                       <label className="checkbox-container">
-                        <input type="checkbox" />
+                        <input type="checkbox" name="remember" />
                         <span className="checkmark"></span>
                         Remember me
                       </label>
@@ -356,20 +332,7 @@ const Auth = () => {
                       </a>
                     </div>
 
-                    {/* reCAPTCHA */}
-                    {ENABLE_RECAPTCHA && (
-                      <div className="d-flex justify-content-center mb-3">
-                        <ReCAPTCHA
-                          ref={loginRecaptchaRef}
-                          sitekey={SITE_KEY}
-                          size="invisible"
-                          onChange={(token) => {
-                            setRecaptchaToken(token);
-                            setError("");
-                          }}
-                        />
-                      </div>
-                    )}
+
 
                     {error && (
                       <p className="text-danger text-center small mb-2">{error}</p>
@@ -526,20 +489,7 @@ const Auth = () => {
                       </label>
                     </div>
 
-                    {/* reCAPTCHA */}
-                    {ENABLE_RECAPTCHA && (
-                      <div className="d-flex justify-content-center mb-3">
-                        <ReCAPTCHA
-                          ref={registerRecaptchaRef}
-                          sitekey={SITE_KEY}
-                          size="invisible"
-                          onChange={(token) => {
-                            setRegisterRecaptchaToken(token);
-                            setError("");
-                          }}
-                        />
-                      </div>
-                    )}
+
 
                     <button
                       type="submit"

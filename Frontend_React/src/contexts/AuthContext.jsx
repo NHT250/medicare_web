@@ -46,7 +46,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
+      console.log("📤 Sending login request to backend...", { email: credentials.email });
       const data = await authAPI.login(credentials);
+      console.log("📥 Backend response:", data);
 
       if (data.token && data.user) {
         const resolvedRole = data.role || data.user?.role || "customer";
@@ -68,12 +70,14 @@ export const AuthProvider = ({ children }) => {
         setRole(resolvedRole);
         setIsAuthenticated(true);
 
+        console.log("✅ Login successful, user:", normalizedUser);
         return { success: true, data };
       } else {
+        console.error("❌ Invalid response from server:", data);
         throw new Error("Invalid response from server");
       }
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("❌ Login error:", error);
       return {
         success: false,
         error: error.response?.data?.error || "Login failed. Please try again.",
