@@ -310,8 +310,8 @@ const Checkout = () => {
                   </div>
                   <p className="text-muted mt-2 mb-0" style={{ fontSize: 12 }}>
                     {paymentMethod === 'cod'
-                      ? 'Bạn sẽ thanh toán trực tiếp cho nhân viên giao hàng (Cash on Delivery).'
-                      : 'Bạn sẽ được chuyển sang cổng thanh toán VNPAY để thanh toán online.'}
+                      ? 'Ban se thanh toan truc tiep cho nhan vien giao hang (Cash on Delivery).'
+                      : 'Ban se duoc chuyen sang cong thanh toan VNPAY de thanh toan online.'}
                   </p>
                 </div>
               </div>

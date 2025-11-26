@@ -19,7 +19,7 @@ from routes.admin_orders import admin_orders_bp
 from routes.admin_uploads import admin_uploads_bp
 from utils.auth import token_required
 from utils.helpers import serialize_doc
-from vnpay_config import build_payment_url, verify_vnpay_signature
+from vnpay_utils import build_payment_url, verify_vnpay_signature
 
 SHIPPING_FLAT_RATE = 5.0
 TAX_RATE = 0.08
@@ -647,6 +647,9 @@ def create_order(current_user):
 @token_required
 def initiate_vnpay_payment(current_user):
     try:
+        if not Config.VNP_TMN_CODE or not Config.VNP_HASH_SECRET:
+            return jsonify({'error': 'VNPAY is not configured'}), 503
+
         payload = request.get_json(force=True, silent=True) or {}
         order_identifier = payload.get('orderId')
         amount_raw = payload.get('amount')
@@ -679,6 +682,8 @@ def initiate_vnpay_payment(current_user):
         payment_info = order.get('payment') or {}
         if str(payment_info.get('status') or '').lower() == 'paid':
             return jsonify({'error': 'Order has already been paid'}), 400
+        if str(payment_info.get('method') or '').upper() != 'VNPAY':
+            return jsonify({'error': 'Payment method is not VNPAY for this order'}), 400
 
         expected_total = float(order.get('total') or 0)
         if amount != int(round(expected_total)):
@@ -702,6 +707,9 @@ def initiate_vnpay_payment(current_user):
 
 @app.route('/vnpay_return', methods=['GET'])
 def vnpay_return():
+    if not Config.VNP_TMN_CODE or not Config.VNP_HASH_SECRET:
+        return redirect('http://localhost:5173/payment-result?status=fail&reason=config')
+
     params = request.args.to_dict()
 
     if not verify_vnpay_signature(params):

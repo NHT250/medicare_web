@@ -25,22 +25,22 @@ const PaymentResult = () => {
             <div className="card shadow-sm">
               <div className={`card-header ${isSuccess ? 'bg-success' : 'bg-danger'} text-white`}>
                 <h4 className="mb-0">
-                  {isSuccess ? 'Thanh toán thành công' : 'Thanh toán thất bại'}
+                  {isSuccess ? 'Thanh toan thanh cong' : 'Thanh toan that bai'}
                 </h4>
               </div>
               <div className="card-body text-center py-5">
                 {isSuccess ? (
                   <>
                     <i className="fas fa-check-circle text-success mb-3" style={{ fontSize: '48px' }}></i>
-                    <h5>Đơn hàng #{orderId}</h5>
-                    <p className="mt-2">Đã được thanh toán thành công.</p>
-                    {amount && <p className="fw-semibold">Số tiền: {amount} VND</p>}
+                    <h5>Don hang #{orderId}</h5>
+                    <p className="mt-2">Da duoc thanh toan thanh cong.</p>
+                    {amount && <p className="fw-semibold">So tien: {amount} VND</p>}
                   </>
                 ) : (
                   <>
                     <i className="fas fa-times-circle text-danger mb-3" style={{ fontSize: '48px' }}></i>
                     <p className="mt-2">
-                      Thanh toán không thành công hoặc đã bị hủy. Vui lòng thử lại hoặc chọn phương thức khác.
+                      Thanh toan khong thanh cong hoac da bi huy. Vui long thu lai hoac chon phuong thuc khac.
                     </p>
                   </>
                 )}
@@ -50,11 +50,11 @@ const PaymentResult = () => {
                     className="btn btn-primary mt-3"
                     onClick={() => navigate(`/orders/${orderId}`)}
                   >
-                    Xem chi tiết đơn hàng
+                    Xem chi tiet don hang
                   </button>
                 )}
 
-                <button className="btn btn-link mt-3" onClick={() => navigate('/')}>Quay về trang chủ</button>
+                <button className="btn btn-link mt-3" onClick={() => navigate('/')}>Quay ve trang chu</button>
               </div>
             </div>
           </div>

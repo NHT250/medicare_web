@@ -30,6 +30,17 @@ class Config:
     if ENABLE_RECAPTCHA and not RECAPTCHA_SECRET_KEY:
         raise RuntimeError('Missing reCAPTCHA secret key while reCAPTCHA is enabled')
     
+    # VNPAY configuration
+    VNP_TMN_CODE = os.getenv('VNP_TMN_CODE')
+    VNP_HASH_SECRET = os.getenv('VNP_HASH_SECRET')
+    VNP_PAY_URL = os.getenv('VNP_PAY_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html')
+    VNP_RETURN_URL = os.getenv('VNP_RETURN_URL', 'http://localhost:5000/vnpay_return')
+    VNP_VERSION = '2.1.0'
+    VNP_COMMAND = 'pay'
+
+    if not VNP_TMN_CODE or not VNP_HASH_SECRET:
+        print('Warning: VNPAY config missing – VNPAY payment will be disabled.')
+
     # Flask Configuration
     DEBUG = os.getenv('FLASK_DEBUG', 'True') == 'True'
     HOST = os.getenv('FLASK_HOST', '0.0.0.0')
