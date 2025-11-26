@@ -262,6 +262,19 @@ export const paymentAPI = {
       console.error("❌ VNPAY API Error:", error.response?.data || error.message);
       throw error;
     }
+  },
+
+  createMomoPayment: async (payload) => {
+    try {
+      console.log("🔗 API: POST /api/payment/momo", payload);
+      // Endpoint tạo URL thanh toán MoMo từ backend
+      const response = await api.post('/api/payment/momo', payload);
+      console.log("✅ MoMo Payment URL received:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ MoMo API Error:", error.response?.data || error.message);
+      throw error;
+    }
   }
 };
 

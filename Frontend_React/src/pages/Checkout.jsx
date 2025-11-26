@@ -90,7 +90,7 @@ const Checkout = () => {
         })),
         shipping: shippingInfo,
         payment: {
-          method: paymentMethodValue,
+          method: paymentMethod === 'cod' ? 'COD' : (paymentMethod === 'vnpay' ? 'VNPAY' : 'MOMO'),
           status: 'Pending'
         },
         subtotal: cartTotal,
@@ -119,7 +119,7 @@ const Checkout = () => {
           setTimeout(() => {
             navigate('/orders');
           }, 3000);
-        } else {
+        } else if (paymentMethod === 'vnpay') {
           // ========== VNPAY Flow ==========
           console.log("💳 VNPAY Payment - Requesting payment URL from backend");
           
@@ -140,6 +140,25 @@ const Checkout = () => {
           } else {
             console.error("❌ No payment URL in response:", paymentResponse);
             alert('Không thể tạo liên kết thanh toán. Vui lòng thử lại.');
+          }
+        } else if (paymentMethod === 'momo') {
+          // ========== MoMo Flow ==========
+          console.log("💳 MoMo Payment - Requesting payment URL from backend");
+          
+          // Step 2: Gọi API tạo URL thanh toán MoMo
+          const paymentResponse = await paymentAPI.createMomoPayment({
+            orderId: orderId
+          });
+
+          if (paymentResponse.success && paymentResponse.payUrl) {
+            console.log("✅ MoMo Payment URL received, redirecting to MoMo gateway");
+            clearCart();
+            
+            // Step 3: Redirect sang cổng MoMo
+            window.location.href = paymentResponse.payUrl;
+          } else {
+            console.error("❌ MoMo payment failed:", paymentResponse);
+            alert(`Lỗi MoMo: ${paymentResponse.error || 'Không thể tạo liên kết thanh toán. Vui lòng thử lại.'}`);
           }
         }
       }
@@ -334,6 +353,28 @@ const Checkout = () => {
                     {paymentMethod === 'vnpay' && (
                       <div className="alert alert-success mt-2 mb-0" role="alert">
                         <small>Bạn sẽ được chuyển sang cổng VNPAY để thanh toán an toàn.</small>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* MoMo Option */}
+                  <div className="payment-option mt-3">
+                    <label className="form-check-label" htmlFor="paymentMomo">
+                      <input
+                        className="form-check-input me-2"
+                        type="radio"
+                        name="paymentMethod"
+                        id="paymentMomo"
+                        value="momo"
+                        checked={paymentMethod === 'momo'}
+                        onChange={() => setPaymentMethod('momo')}
+                      />
+                      <i className="fas fa-mobile-alt me-2 text-primary"></i>
+                      <strong>Thanh toán qua MoMo</strong>
+                    </label>
+                    {paymentMethod === 'momo' && (
+                      <div className="alert alert-primary mt-2 mb-0" role="alert">
+                        <small>Bạn sẽ được chuyển sang ví MoMo để thanh toán an toàn.</small>
                       </div>
                     )}
                   </div>

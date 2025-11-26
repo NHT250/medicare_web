@@ -48,6 +48,18 @@ class Config:
     if not VNP_TMN_CODE or not VNP_HASH_SECRET:
         print('Warning: VNPAY config missing – VNPAY payment will be disabled.')
 
+    # MoMo configuration
+    MOMO_ENDPOINT = os.getenv('MOMO_ENDPOINT', 'https://test-payment.momo.vn/v2/gateway/api/create')
+    MOMO_PARTNER_CODE = os.getenv('MOMO_PARTNER_CODE', 'MOMO')
+    MOMO_ACCESS_KEY = os.getenv('MOMO_ACCESS_KEY', 'F8BBA842ECF85')
+    MOMO_SECRET_KEY = os.getenv('MOMO_SECRET_KEY', 'K951B6PE1waDMi640xX08PD3vg6EkVlz')
+    MOMO_REQUEST_TYPE = os.getenv('MOMO_REQUEST_TYPE', 'captureWallet')
+    MOMO_REDIRECT_URL = os.getenv('MOMO_REDIRECT_URL', 'http://localhost:5173/payment-result')
+    MOMO_IPN_URL = os.getenv('MOMO_IPN_URL', 'http://localhost:5000/api/payment/momo/ipn')
+
+    if not MOMO_ACCESS_KEY or not MOMO_SECRET_KEY:
+        print('Warning: MoMo config missing – MoMo payment will be disabled.')
+
     # Flask Configuration
     DEBUG = os.getenv('FLASK_DEBUG', 'True') == 'True'
     HOST = os.getenv('FLASK_HOST', '0.0.0.0')

@@ -20,6 +20,7 @@ from routes.admin_uploads import admin_uploads_bp
 from utils.auth import token_required
 from utils.helpers import serialize_doc
 from vnpay_utils import build_payment_url, verify_vnpay_signature
+from momo_service import create_momo_payment, verify_momo_signature
 
 SHIPPING_FLAT_RATE = 5.0
 TAX_RATE = 0.08
@@ -1002,6 +1003,189 @@ def update_user_profile(current_user):
         })
         
     except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ============ MOMO PAYMENT ============
+
+@app.route('/api/payment/momo', methods=['POST'])
+@token_required
+def create_momo_payment_endpoint(current_user):
+    """
+    Create MoMo payment URL for order.
+    Frontend calls this after successful order creation.
+    """
+    try:
+        if not Config.MOMO_ACCESS_KEY or not Config.MOMO_SECRET_KEY:
+            print("❌ MoMo not configured")
+            return jsonify({'error': 'MoMo is not configured'}), 503
+
+        payload = request.get_json(force=True, silent=True) or {}
+        order_identifier = payload.get('orderId')
+
+        print(f"🔗 MoMo Create Payment: orderId={order_identifier}")
+
+        if not order_identifier:
+            print("❌ Missing orderId")
+            return jsonify({'error': 'orderId is required'}), 400
+
+        # Find order in database
+        order = None
+        try:
+            order_object_id = ObjectId(order_identifier)
+            order = db.orders.find_one({'_id': order_object_id})
+        except (InvalidId, TypeError):
+            order = db.orders.find_one({'orderId': order_identifier})
+
+        if not order:
+            print(f"❌ Order not found: {order_identifier}")
+            return jsonify({'error': 'Order not found'}), 404
+
+        user_id = str(current_user['_id'])
+        if order.get('userId') != user_id:
+            print(f"❌ Permission denied for user {user_id}")
+            return jsonify({'error': 'You do not have permission to pay for this order'}), 403
+
+        # Check if already paid
+        payment_info = order.get('payment') or {}
+        if str(payment_info.get('status') or '').lower() == 'paid':
+            print("❌ Order already paid")
+            return jsonify({'error': 'Order has already been paid'}), 400
+        
+        if str(payment_info.get('method') or '').upper() != 'MOMO':
+            print("❌ Payment method is not MoMo")
+            return jsonify({'error': 'Payment method is not MoMo for this order'}), 400
+
+        # Create MoMo payment
+        momo_response = create_momo_payment(order)
+
+        if momo_response.get('resultCode') != 0:
+            print(f"❌ MoMo creation failed: {momo_response.get('message')}")
+            return jsonify({
+                'success': False,
+                'error': momo_response.get('message') or 'Failed to create MoMo payment',
+                'resultCode': momo_response.get('resultCode')
+            }), 400
+
+        pay_url = momo_response.get('payUrl')
+        if not pay_url:
+            print("❌ MoMo response missing payUrl")
+            return jsonify({
+                'success': False,
+                'error': 'MoMo response missing payUrl'
+            }), 400
+
+        # Update order payment status to pending
+        db.orders.update_one(
+            {'_id': order['_id']},
+            {'$set': {
+                'payment.method': 'MOMO',
+                'payment.status': 'Pending',
+                'updatedAt': datetime.utcnow()
+            }},
+        )
+
+        order_total_vnd = order.get('totalVnd') or int(round(float(order.get('total') or 0) * Config.EXCHANGE_RATE))
+        
+        print(f"✅ MoMo payment created: payUrl={pay_url[:50]}...")
+        return jsonify({
+            'success': True,
+            'payUrl': pay_url,
+            'orderId': str(order.get('_id') or order_identifier),
+            'amount_vnd': order_total_vnd
+        }), 200
+
+    except Exception as e:
+        print(f"❌ MoMo Payment Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/payment/momo/ipn', methods=['POST'])
+def momo_ipn_handler():
+    """
+    MoMo IPN (Instant Payment Notification) webhook handler.
+    MoMo calls this endpoint to notify payment result.
+    """
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+        
+        print(f"📩 MoMo IPN received: orderId={data.get('orderId')}, resultCode={data.get('resultCode')}")
+
+        # Verify signature
+        if not verify_momo_signature(data):
+            print("❌ Invalid MoMo IPN signature")
+            return jsonify({'message': 'Invalid signature'}), 400
+
+        order_id = data.get('orderId')
+        result_code = data.get('resultCode')  # 0 = success
+        amount_vnd = data.get('amount')  # MoMo returns amount as VND (not x100)
+        transaction_id = data.get('transId')
+
+        # Find order
+        order = None
+        try:
+            if order_id:
+                order = db.orders.find_one({'_id': ObjectId(order_id)})
+        except (InvalidId, TypeError):
+            if order_id:
+                order = db.orders.find_one({'orderId': order_id})
+
+        if not order:
+            print(f"❌ Order not found: {order_id}")
+            return jsonify({'message': 'Order not found'}), 400
+
+        # Verify amount - Convert paid_vnd and compare with expected_total_vnd
+        try:
+            paid_vnd = int(amount_vnd) if amount_vnd else 0
+        except (TypeError, ValueError):
+            paid_vnd = 0
+
+        expected_total_usd = float(order.get('total') or order.get('totalUsd') or 0)
+        expected_total_vnd = int(order.get('totalVnd') or round(expected_total_usd * Config.EXCHANGE_RATE))
+
+        # Compare MOMO paid VND amount with expected VND total
+        if paid_vnd != expected_total_vnd:
+            print(f"⚠️ MoMo amount mismatch: paid_vnd={paid_vnd}, expected_total_vnd={expected_total_vnd}")
+            # Still update order to record the IPN, but with amount mismatch note
+            db.orders.update_one(
+                {'_id': order['_id']},
+                {'$set': {
+                    'payment.method': 'MOMO',
+                    'payment.status': 'Failed',
+                    'payment.transactionId': transaction_id,
+                    'payment.resultCode': result_code,
+                    'payment.note': f'Amount mismatch: paid {paid_vnd} VND, expected {expected_total_vnd} VND',
+                    'status': 'Payment Failed',
+                    'updatedAt': datetime.utcnow()
+                }},
+            )
+            return jsonify({'message': 'Amount mismatch'}), 200
+
+        is_success = result_code == 0
+        payment_status = 'Paid' if is_success else 'Failed'
+        status_label = 'Paid' if is_success else 'Payment Failed'
+
+        # Update order with payment result
+        db.orders.update_one(
+            {'_id': order['_id']},
+            {'$set': {
+                'payment.method': 'MOMO',
+                'payment.status': payment_status,
+                'payment.transactionId': transaction_id,
+                'payment.resultCode': result_code,
+                'status': status_label,
+                'updatedAt': datetime.utcnow()
+            }},
+        )
+
+        print(f"✅ MoMo IPN processed: orderId={order_id}, status={payment_status}, transId={transaction_id}")
+        return jsonify({'message': 'OK'}), 200
+
+    except Exception as e:
+        print(f"❌ MoMo IPN Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 # ============ RUN SERVER ============
