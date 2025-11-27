@@ -9,6 +9,7 @@ from pymongo.errors import DuplicateKeyError
 import bcrypt
 import jwt
 from datetime import datetime, timedelta
+from datetime import datetime, timedelta
 from config import Config
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -20,6 +21,8 @@ try:
     REPORTLAB_AVAILABLE = True
 except Exception:
     REPORTLAB_AVAILABLE = False
+
+PAID_STATUSES = {'paid', 'completed', 'delivered', 'payment success', 'payment successful', 'shipped'}
 
 from routes.admin import admin_bp
 from routes.admin_dashboard import dashboard_bp as admin_dashboard_bp
@@ -164,6 +167,284 @@ app.register_blueprint(admin_bp)
 app.register_blueprint(admin_dashboard_bp)
 app.register_blueprint(admin_orders_bp)
 app.register_blueprint(admin_uploads_bp)
+
+# Helper: normalize status
+def _norm_status(value: str) -> str:
+    if not value:
+        return ''
+    return str(value).strip().lower()
+
+
+# ============ ADMIN DASHBOARD APIS (lightweight) ============
+
+@app.route('/api/admin/dashboard/summary', methods=['GET'])
+def admin_summary():
+    try:
+        revenue = 0.0
+        orders_count = db.orders.count_documents({})
+        users_count = db.users.count_documents({})
+        active_products = db.products.count_documents({'is_active': True}) if 'products' in db.list_collection_names() else 0
+
+        # Sum revenue for paid/completed statuses
+        pipeline = [
+            {"$project": {"total": 1, "statusLower": {"$toLower": "$status"}}},
+            {"$match": {"statusLower": {"$in": list(PAID_STATUSES)}}},
+            {"$group": {"_id": None, "rev": {"$sum": "$total"}}},
+        ]
+        agg = list(db.orders.aggregate(pipeline))
+        if agg:
+            revenue = float(agg[0].get("rev", 0) or 0)
+
+        return jsonify({
+            "data": {
+                "totalRevenue": revenue,
+                "totalOrders": orders_count,
+                "totalUsers": users_count,
+                "activeProducts": active_products,
+            }
+        })
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route('/api/admin/dashboard/recent-orders', methods=['GET'])
+def admin_recent_orders():
+    try:
+        limit = int(request.args.get('limit', 5))
+        orders = list(db.orders.find().sort('createdAt', -1).limit(limit))
+        formatted = []
+        for o in orders:
+            formatted.append({
+                "id": str(o.get("_id")),
+                "orderCode": o.get("orderId") or str(o.get("_id")),
+                "customerName": o.get("shipping", {}).get("fullName") or o.get("userId"),
+                "customerEmail": o.get("shipping", {}).get("email"),
+                "totalAmount": o.get("total") or 0,
+                "status": o.get("status"),
+                "paymentMethod": (o.get("payment") or {}).get("method"),
+                "createdAt": o.get("createdAt"),
+            })
+        return jsonify({"data": formatted})
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route('/api/admin/dashboard/recent-users', methods=['GET'])
+def admin_recent_users():
+    try:
+        limit = int(request.args.get('limit', 5))
+        users = list(db.users.find().sort('createdAt', -1).limit(limit))
+        formatted = []
+        for u in users:
+            formatted.append({
+                "id": str(u.get("_id")),
+                "name": u.get("name") or u.get("email"),
+                "email": u.get("email"),
+                "createdAt": u.get("createdAt"),
+                "totalOrders": 0,
+                "totalSpent": 0,
+            })
+        return jsonify({"data": formatted})
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route('/api/admin/dashboard/revenue', methods=['GET'])
+def admin_revenue():
+    try:
+        range_param = request.args.get('range', '30d')
+        days = int(range_param.replace('d', '')) if 'd' in range_param else 30
+        since = datetime.utcnow() - timedelta(days=days)
+        pipeline = [
+            {"$project": {"total": 1, "createdAt": 1, "statusLower": {"$toLower": "$status"}}},
+            {"$match": {"statusLower": {"$in": list(PAID_STATUSES)}, "createdAt": {"$gte": since}}},
+            {"$group": {
+                "_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$createdAt"}},
+                "revenue": {"$sum": "$total"},
+                "orders": {"$sum": 1},
+            }},
+            {"$sort": {"_id": 1}}
+        ]
+        data = []
+        for doc in db.orders.aggregate(pipeline):
+            orders = doc.get("orders", 0)
+            revenue = doc.get("revenue", 0)
+            avg = revenue / orders if orders else 0
+            data.append({
+                "date": doc["_id"],
+                "revenue": revenue,
+                "orders": orders,
+                "avgOrderValue": avg,
+            })
+        return jsonify({"data": data})
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route('/api/admin/dashboard/category-stats', methods=['GET'])
+def admin_category_stats():
+    """
+    Trả doanh thu và số lượng theo danh mục, tính từ các đơn hàng đã thanh toán
+    trong khoảng thời gian range (vd: 7d, 30d). Mặc định 30d.
+    """
+    try:
+        # Parse range param
+        range_param = request.args.get('range', '30d')
+        try:
+            days = int(range_param.replace('d', '')) if 'd' in range_param else int(range_param)
+            days = max(1, days)
+        except Exception:
+            days = 30
+        since = datetime.utcnow() - timedelta(days=days - 1)
+
+        # Bước 1: aggregate từ orders -> items -> productId với quantity/revenue
+        pipeline = [
+            {
+                "$project": {
+                    "items": 1,
+                    "createdAt": 1,
+                    "statusLower": {"$toLower": "$status"},
+                }
+            },
+            {
+                "$match": {
+                    "statusLower": {"$in": [s.lower() for s in PAID_STATUSES]},
+                    "createdAt": {"$gte": since},
+                }
+            },
+            {"$unwind": "$items"},
+            {
+                "$project": {
+                    "productId": "$items.productId",
+                    "quantity": {
+                        "$cond": [
+                            {"$isNumber": "$items.quantity"},
+                            "$items.quantity",
+                            0,
+                        ]
+                    },
+                    "price": {
+                        "$cond": [
+                            {"$isNumber": "$items.price"},
+                            "$items.price",
+                            0,
+                        ]
+                    },
+                    "subtotal": {
+                        "$cond": [
+                            {"$isNumber": "$items.subtotal"},
+                            "$items.subtotal",
+                            None,
+                        ]
+                    },
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$productId",
+                    "totalQty": {"$sum": "$quantity"},
+                    "totalRev": {
+                        "$sum": {
+                            "$cond": [
+                                {"$ne": ["$subtotal", None]},
+                                "$subtotal",
+                                {"$multiply": ["$price", "$quantity"]},
+                            ]
+                        }
+                    },
+                }
+            },
+        ]
+
+        prod_stats = list(db.orders.aggregate(pipeline))
+
+        if not prod_stats:
+            return jsonify({"data": []})
+
+        # Bước 2: tra category của từng product
+        product_ids = []
+        pid_map = {}  # productId (str) -> stats
+        for doc in prod_stats:
+            pid_raw = doc.get("_id")
+            if pid_raw is None:
+                continue
+            pid_str = str(pid_raw)
+            pid_map[pid_str] = {
+                "qty": int(doc.get("totalQty", 0) or 0),
+                "rev": float(doc.get("totalRev", 0) or 0),
+            }
+            try:
+                product_ids.append(ObjectId(pid_raw))
+            except Exception:
+                # nếu pid lưu dạng string không convert được thì bỏ qua lookup
+                pass
+
+        products = {}
+        if product_ids:
+            cursor = db.products.find({"_id": {"$in": product_ids}}, {"category": 1})
+            for p in cursor:
+                products[str(p["_id"])] = p.get("category")
+
+        # Bước 3: gộp theo category
+        category_map = {}
+        for pid_str, stats in pid_map.items():
+            category = products.get(pid_str)
+            if not category:
+                continue
+            cat_key = str(category)
+            if cat_key not in category_map:
+                category_map[cat_key] = {"rev": 0.0, "qty": 0}
+            category_map[cat_key]["rev"] += stats["rev"]
+            category_map[cat_key]["qty"] += stats["qty"]
+
+        data = [
+            {
+                "categoryId": cat,
+                "categoryName": cat,
+                "totalRevenue": float(vals["rev"]),
+                "totalQuantity": int(vals["qty"]),
+            }
+            for cat, vals in category_map.items()
+        ]
+
+        # Sắp xếp theo doanh thu giảm dần
+        data.sort(key=lambda x: x["totalRevenue"], reverse=True)
+
+        return jsonify({"data": data})
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route('/api/admin/dashboard/payment-methods', methods=['GET'])
+def admin_payment_methods():
+    try:
+        pipeline = [
+            {"$project": {"method": {"$toLower": "$payment.method"}}},
+            {"$group": {"_id": "$method", "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}}
+        ]
+        data = [{"method": doc["_id"], "orders": doc["count"], "revenue": 0} for doc in db.orders.aggregate(pipeline)]
+        return jsonify({"data": data})
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route('/api/admin/dashboard/order-status-summary', methods=['GET'])
+def admin_order_status_summary():
+    try:
+        pipeline = [
+            {"$project": {"statusLower": {"$toLower": "$status"}}},
+            {"$group": {"_id": "$statusLower", "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}}
+        ]
+        entries = db.orders.aggregate(pipeline)
+        data_map = {}
+        for doc in entries:
+            key = (doc.get("_id") or "").upper()
+            data_map[key] = doc.get("count", 0)
+        return jsonify({"data": data_map})
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
 
 # Helper function to verify reCAPTCHA
 def verify_recaptcha(recaptcha_token: str | None) -> bool:

@@ -145,14 +145,22 @@ def get_recent_orders(current_user):  # pylint: disable=unused-argument
         if not customer_name:
             customer_name = order.get("customerName") or "Unknown customer"
 
+        customer_email = user_doc.get("email") if isinstance(user_doc, dict) else None
+
+        # totalAmount: ưu tiên total, fallback totalUsd, rồi 0
+        total_val = order.get("total")
+        if total_val is None:
+            total_val = order.get("totalUsd")
+
         recent_orders.append(
             {
                 "id": str(order.get("_id")),
-                "order_id": order.get("orderId"),
-                "customer_name": customer_name,
-                "total": _to_float(order.get("total")),
+                "orderCode": order.get("orderId") or str(order.get("_id")),
+                "customerName": customer_name,
+                "customerEmail": customer_email,
+                "totalAmount": _to_float(total_val),
                 "status": order.get("status", "pending"),
-                "created_at": _isoformat(order.get("createdAt")),
+                "createdAt": _isoformat(order.get("createdAt")),
             }
         )
 
