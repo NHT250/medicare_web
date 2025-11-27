@@ -16,8 +16,8 @@ const Footer = () => {
           <div className="col-lg-3 col-md-6">
             <h5 className="text-primary mb-3">Medicare</h5>
             <p className="text-light mb-3">
-              Your trusted online pharmacy for all your healthcare needs.
-              Quality medicines, expert advice, fast delivery.
+              Nhà thuốc trực tuyến đáng tin cậy của bạn cho mọi nhu cầu chăm sóc sức khỏe.
+              Thuốc chất lượng, tư vấn chuyên gia, giao hàng nhanh.
             </p>
             <div className="social-icons">
               <a href="#" className="social-icon me-2">
@@ -37,26 +37,26 @@ const Footer = () => {
 
           {/* About Us Column */}
           <div className="col-lg-3 col-md-6">
-            <h5 className="mb-3 text-white">About Us</h5>
+            <h5 className="mb-3 text-white">Về Chúng Tôi</h5>
             <ul className="list-unstyled">
               <li>
                 <a href="#" className="text-light text-decoration-none">
-                  Our Story
+                  Câu Chuyện Của Chúng Tôi
                 </a>
               </li>
               <li>
                 <a href="#" className="text-light text-decoration-none">
-                  Mission & Vision
+                  Sứ Mệnh & Tầm Nhìn
                 </a>
               </li>
               <li>
                 <a href="#" className="text-light text-decoration-none">
-                  Careers
+                  Tuyển Dụng
                 </a>
               </li>
               <li>
                 <a href="#" className="text-light text-decoration-none">
-                  Press
+                  Báo Chí
                 </a>
               </li>
             </ul>
@@ -64,31 +64,31 @@ const Footer = () => {
 
           {/* Customer Support Column */}
           <div className="col-lg-3 col-md-6">
-            <h5 className="mb-3 text-white">Customer Support</h5>
+            <h5 className="mb-3 text-white">Hỗ Trợ Khách Hàng</h5>
             <ul className="list-unstyled">
               <li>
                 <a href="#" className="text-light text-decoration-none">
-                  FAQs
+                  Câu Hỏi Thường Gặp
                 </a>
               </li>
               <li>
                 <a href="#" className="text-light text-decoration-none">
-                  Returns & Refunds
+                  Đổi Trả & Hoàn Tiền
                 </a>
               </li>
               <li>
                 <a href="#" className="text-light text-decoration-none">
-                  Shipping Info
+                  Thông Tin Giao Hàng
                 </a>
               </li>
               <li>
                 <a href="#" className="text-light text-decoration-none">
-                  Track Order
+                  Theo Dõi Đơn Hàng
                 </a>
               </li>
               <li>
                 <a href="#" className="text-light text-decoration-none">
-                  Privacy Policy
+                  Chính Sách Bảo Mật
                 </a>
               </li>
             </ul>
@@ -96,16 +96,16 @@ const Footer = () => {
 
           {/* Contact Info Column */}
           <div className="col-lg-3 col-md-6">
-            <h5 className="mb-3 text-white">Contact Info</h5>
+            <h5 className="mb-3 text-white">Thông Tin Liên Hệ</h5>
             <div className="contact-item mb-2">
               <i className="fas fa-map-marker-alt text-primary me-2"></i>
               <span className="text-light">
-                123 Healthcare St, Medical City, MC 12345
+                123 Đường Y Tế, Thành Phố Y Tế, MC 12345
               </span>
             </div>
             <div className="contact-item mb-2">
               <i className="fas fa-phone text-primary me-2"></i>
-              <span className="text-light">+1 (555) 123-4567</span>
+              <span className="text-light">+84 (555) 123-4567</span>
             </div>
             <div className="contact-item mb-2">
               <i className="fas fa-envelope text-primary me-2"></i>
@@ -120,7 +120,7 @@ const Footer = () => {
         />
         <div className="text-center">
           <p className="text-light mb-0">
-            &copy; 2025 Medicare. All rights reserved.
+            &copy; 2025 Medicare. Bảo lưu mọi quyền.
           </p>
         </div>
       </div>

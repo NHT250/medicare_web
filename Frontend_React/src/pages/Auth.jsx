@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import ReCAPTCHA from "react-google-recaptcha";
+import config from "../config";
 import "../styles/Auth.css";
 
 const Auth = () => {
@@ -22,6 +24,12 @@ const Auth = () => {
     email: "",
     password: "",
   });
+  
+  // reCAPTCHA token for login
+  const [loginRecaptchaToken, setLoginRecaptchaToken] = useState(null);
+  
+  // reCAPTCHA token for register
+  const [registerRecaptchaToken, setRegisterRecaptchaToken] = useState(null);
 
   // Register form state
   const [registerForm, setRegisterForm] = useState({
@@ -52,13 +60,19 @@ const Auth = () => {
 
     // Validate form
     if (!loginForm.email || !loginForm.password) {
-      setError("Please fill in all fields");
+      setError("Vui lòng điền đầy đủ thông tin");
       return;
     }
 
     // Validate email format
     if (!validateEmail(loginForm.email)) {
-      setError("Please enter a valid email address");
+      setError("Vui lòng nhập địa chỉ email hợp lệ");
+      return;
+    }
+
+    // Validate reCAPTCHA
+    if (!loginRecaptchaToken) {
+      setError('Vui lòng xác nhận "I\'m not a robot".');
       return;
     }
 
@@ -68,13 +82,14 @@ const Auth = () => {
       console.log("🔐 Login attempt with:", { email: loginForm.email });
       const result = await login({
         ...loginForm,
+        recaptcha_token: loginRecaptchaToken,
       });
 
       console.log("✅ Login result:", result);
 
       if (result.success) {
         console.log("✅ Login successful, redirecting...");
-        alert("Login successful! Redirecting...");
+        alert("Đăng nhập thành công! Đang chuyển hướng...");
         const destination =
           result.data.role === "admin"
             ? "/admin"
@@ -87,15 +102,15 @@ const Auth = () => {
     } catch (err) {
       console.error("Login error details:", err);
       if (err.code === "ECONNABORTED" || err.message === "Timeout") {
-        setError("Connection timeout. Is the backend running at http://localhost:5000?");
+        setError("Kết nối hết thời gian chờ. Backend có đang chạy tại http://localhost:5000 không?");
       } else if (err.response?.status === 401) {
-        setError("Invalid email or password");
+        setError("Email hoặc mật khẩu không đúng");
       } else if (err.response?.status === 400) {
-        setError(err.response?.data?.error || "Invalid credentials");
+        setError(err.response?.data?.error || "Thông tin đăng nhập không hợp lệ");
       } else if (!err.response) {
-        setError("Cannot connect to server. Check your internet or backend status.");
+        setError("Không thể kết nối đến server. Vui lòng kiểm tra kết nối internet hoặc trạng thái backend.");
       } else {
-        setError(err.response?.data?.error || "An error occurred. Please try again.");
+        setError(err.response?.data?.error || "Đã xảy ra lỗi. Vui lòng thử lại.");
       }
     } finally {
       setLoading(false);
@@ -116,53 +131,58 @@ const Auth = () => {
       !registerForm.password ||
       !registerForm.confirmPassword
     ) {
-      setError("Please fill in all fields");
+      setError("Vui lòng điền đầy đủ thông tin");
       return;
     }
 
     // Validate email
     if (!validateEmail(registerForm.email)) {
-      setError("Please enter a valid email address");
+      setError("Vui lòng nhập địa chỉ email hợp lệ");
       return;
     }
 
     // Validate phone
     if (!validatePhone(registerForm.phone)) {
-      setError("Please enter a valid phone number");
+      setError("Vui lòng nhập số điện thoại hợp lệ");
       return;
     }
 
     // Validate password
     if (!validatePassword(registerForm.password)) {
       setError(
-        "Password must be at least 8 characters with uppercase, lowercase, and number"
+        "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số"
       );
       return;
     }
 
     // Check password match
     if (registerForm.password !== registerForm.confirmPassword) {
-      setError("Passwords do not match");
+      setError("Mật khẩu không khớp");
       return;
     }
 
     // Check terms agreement
     if (!registerForm.agreeTerms) {
-      setError("Please agree to the Terms & Conditions");
+      setError("Vui lòng đồng ý với Điều khoản & Điều kiện");
       return;
     }
 
-
+    // Validate reCAPTCHA
+    if (!registerRecaptchaToken) {
+      setError('Vui lòng xác nhận "I\'m not a robot".');
+      return;
+    }
 
     setLoading(true);
 
     try {
       const result = await register({
         ...registerForm,
+        recaptcha_token: registerRecaptchaToken,
       });
 
       if (result.success) {
-        alert("Registration successful! Please log in.");
+        alert("Đăng ký thành công! Vui lòng đăng nhập.");
         navigate("/login");
         setRegisterForm({
           name: "",
@@ -173,20 +193,21 @@ const Auth = () => {
           agreeTerms: false,
           recaptcha_token: "",
         });
-        setSuccess("Registration successful! You can now sign in.");
+        setRegisterRecaptchaToken(null); // Reset captcha token
+        setSuccess("Đăng ký thành công! Bạn có thể đăng nhập ngay bây giờ.");
       } else {
         setError(result.error);
       }
     } catch (err) {
       console.error("Register error details:", err);
       if (err.code === "ECONNABORTED" || err.message === "Timeout") {
-        setError("Connection timeout. Is the backend running at http://localhost:5000?");
+        setError("Kết nối hết thời gian chờ. Backend có đang chạy tại http://localhost:5000 không?");
       } else if (err.response?.status === 400) {
-        setError(err.response?.data?.error || "Email already exists or invalid data");
+        setError(err.response?.data?.error || "Email đã tồn tại hoặc dữ liệu không hợp lệ");
       } else if (!err.response) {
-        setError("Cannot connect to server. Check your internet or backend status.");
+        setError("Không thể kết nối đến server. Vui lòng kiểm tra kết nối internet hoặc trạng thái backend.");
       } else {
-        setError(err.response?.data?.error || "An error occurred. Please try again.");
+        setError(err.response?.data?.error || "Đã xảy ra lỗi. Vui lòng thử lại.");
       }
     } finally {
       setLoading(false);
@@ -223,7 +244,7 @@ const Auth = () => {
           </div>
           <div className="header-actions">
             <button className="back-to-home" onClick={() => navigate("/")}>
-              <i className="fas fa-home"></i> Back to Home
+              <i className="fas fa-home"></i> Về Trang Chủ
             </button>
           </div>
         </div>
@@ -243,9 +264,10 @@ const Auth = () => {
                     setActiveTab("login");
                     setError("");
                     setSuccess("");
+                    setLoginRecaptchaToken(null); // Reset captcha when switching tabs
                   }}
                 >
-                  Login
+                  Đăng Nhập
                 </button>
                 <button
                   className={`tab ${activeTab === "register" ? "active" : ""}`}
@@ -253,9 +275,10 @@ const Auth = () => {
                     setActiveTab("register");
                     setError("");
                     setSuccess("");
+                    setRegisterRecaptchaToken(null); // Reset captcha when switching tabs
                   }}
                 >
-                  Register
+                  Đăng Ký
                 </button>
               </div>
 
@@ -275,14 +298,14 @@ const Auth = () => {
               {/* Login Form */}
               {activeTab === "login" && (
                 <div className="form-section">
-                  <h2 className="welcome-title">Welcome Back!</h2>
+                  <h2 className="welcome-title">Chào Mừng Trở Lại!</h2>
                   <p className="welcome-subtitle">
-                    Sign in to your Medicare account
+                    Đăng nhập vào tài khoản Medicare của bạn
                   </p>
 
                   <form className="auth-form" onSubmit={handleLoginSubmit}>
                     <div className="form-group">
-                      <label htmlFor="loginEmail">Email Address</label>
+                      <label htmlFor="loginEmail">Địa Chỉ Email</label>
                       <div className="input-container">
                         <input
                           type="email"
@@ -294,7 +317,7 @@ const Auth = () => {
                               email: e.target.value,
                             })
                           }
-                          placeholder="Enter your email"
+                          placeholder="Nhập email của bạn"
                           required
                         />
                         <i className="fas fa-envelope input-icon"></i>
@@ -302,7 +325,7 @@ const Auth = () => {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="loginPassword">Password</label>
+                      <label htmlFor="loginPassword">Mật Khẩu</label>
                       <div className="input-container">
                         <input
                           type="password"
@@ -314,7 +337,7 @@ const Auth = () => {
                               password: e.target.value,
                             })
                           }
-                          placeholder="Enter your password"
+                          placeholder="Nhập mật khẩu của bạn"
                           required
                         />
                         <i className="fas fa-lock input-icon"></i>
@@ -325,14 +348,30 @@ const Auth = () => {
                       <label className="checkbox-container">
                         <input type="checkbox" name="remember" />
                         <span className="checkmark"></span>
-                        Remember me
+                        Ghi nhớ đăng nhập
                       </label>
                       <a href="#" className="forgot-password">
-                        Forgot password?
+                        Quên mật khẩu?
                       </a>
                     </div>
 
-
+                    {/* reCAPTCHA for Login */}
+                    <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
+                      <ReCAPTCHA
+                        sitekey={config.RECAPTCHA_SITE_KEY}
+                        onChange={(token) => {
+                          setLoginRecaptchaToken(token);
+                          setError(""); // Clear error when captcha is verified
+                        }}
+                        onExpired={() => {
+                          setLoginRecaptchaToken(null);
+                        }}
+                        onError={() => {
+                          setLoginRecaptchaToken(null);
+                          setError("Lỗi xác thực Captcha. Vui lòng thử lại.");
+                        }}
+                      />
+                    </div>
 
                     {error && (
                       <p className="text-danger text-center small mb-2">{error}</p>
@@ -343,12 +382,12 @@ const Auth = () => {
                       className="submit-btn"
                       disabled={loading}
                     >
-                      {loading ? "Logging in..." : "Login"}
+                      {loading ? "Đang đăng nhập..." : "Đăng Nhập"}
                     </button>
                   </form>
 
                   <p className="switch-form">
-                    Don't have an account?{" "}
+                    Chưa có tài khoản?{" "}
                     <a
                       href="#"
                       onClick={(e) => {
@@ -356,7 +395,7 @@ const Auth = () => {
                         navigate("/register");
                       }}
                     >
-                      Register here
+                      Đăng ký tại đây
                     </a>
                   </p>
                 </div>
@@ -365,14 +404,14 @@ const Auth = () => {
               {/* Register Form */}
               {activeTab === "register" && (
                 <div className="form-section">
-                  <h2 className="welcome-title">Create Account!</h2>
+                  <h2 className="welcome-title">Tạo Tài Khoản!</h2>
                   <p className="welcome-subtitle">
-                    Join Medicare for better healthcare
+                    Tham gia Medicare để chăm sóc sức khỏe tốt hơn
                   </p>
 
                   <form className="auth-form" onSubmit={handleRegisterSubmit}>
                     <div className="form-group">
-                      <label htmlFor="registerName">Full Name</label>
+                      <label htmlFor="registerName">Họ và Tên</label>
                       <div className="input-container">
                         <input
                           type="text"
@@ -384,7 +423,7 @@ const Auth = () => {
                               name: e.target.value,
                             })
                           }
-                          placeholder="Enter your full name"
+                          placeholder="Nhập họ và tên của bạn"
                           required
                         />
                         <i className="fas fa-user input-icon"></i>
@@ -392,7 +431,7 @@ const Auth = () => {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="registerEmail">Email Address</label>
+                      <label htmlFor="registerEmail">Địa Chỉ Email</label>
                       <div className="input-container">
                         <input
                           type="email"
@@ -404,7 +443,7 @@ const Auth = () => {
                               email: e.target.value,
                             })
                           }
-                          placeholder="Enter your email"
+                          placeholder="Nhập email của bạn"
                           required
                         />
                         <i className="fas fa-envelope input-icon"></i>
@@ -412,7 +451,7 @@ const Auth = () => {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="registerPhone">Phone Number</label>
+                      <label htmlFor="registerPhone">Số Điện Thoại</label>
                       <div className="input-container">
                         <input
                           type="tel"
@@ -424,7 +463,7 @@ const Auth = () => {
                               phone: e.target.value,
                             })
                           }
-                          placeholder="Enter your phone number"
+                          placeholder="Nhập số điện thoại của bạn"
                           required
                         />
                         <i className="fas fa-phone input-icon"></i>
@@ -432,7 +471,7 @@ const Auth = () => {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="registerPassword">Password</label>
+                      <label htmlFor="registerPassword">Mật Khẩu</label>
                       <div className="input-container">
                         <input
                           type="password"
@@ -444,7 +483,7 @@ const Auth = () => {
                               password: e.target.value,
                             })
                           }
-                          placeholder="Enter your password"
+                          placeholder="Nhập mật khẩu của bạn"
                           required
                         />
                         <i className="fas fa-lock input-icon"></i>
@@ -452,7 +491,7 @@ const Auth = () => {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="confirmPassword">Confirm Password</label>
+                      <label htmlFor="confirmPassword">Xác Nhận Mật Khẩu</label>
                       <div className="input-container">
                         <input
                           type="password"
@@ -464,7 +503,7 @@ const Auth = () => {
                               confirmPassword: e.target.value,
                             })
                           }
-                          placeholder="Confirm your password"
+                          placeholder="Xác nhận mật khẩu của bạn"
                           required
                         />
                         <i className="fas fa-lock input-icon"></i>
@@ -484,26 +523,46 @@ const Auth = () => {
                           }
                           required
                         />
-                        <span className="checkmark"></span>I agree to the{" "}
-                        <a href="#">Terms & Conditions</a>
+                        <span className="checkmark"></span>Tôi đồng ý với{" "}
+                        <a href="#">Điều khoản & Điều kiện</a>
                       </label>
                     </div>
 
+                    {/* reCAPTCHA for Register */}
+                    <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
+                      <ReCAPTCHA
+                        sitekey={config.RECAPTCHA_SITE_KEY}
+                        onChange={(token) => {
+                          setRegisterRecaptchaToken(token);
+                          setError(""); // Clear error when captcha is verified
+                        }}
+                        onExpired={() => {
+                          setRegisterRecaptchaToken(null);
+                        }}
+                        onError={() => {
+                          setRegisterRecaptchaToken(null);
+                          setError("Lỗi xác thực Captcha. Vui lòng thử lại.");
+                        }}
+                      />
+                    </div>
 
+                    {error && (
+                      <p className="text-danger text-center small mb-2">{error}</p>
+                    )}
 
                     <button
                       type="submit"
                       className="submit-btn"
                       disabled={loading}
                     >
-                      {loading ? "Creating account..." : "Register"}
+                      {loading ? "Đang tạo tài khoản..." : "Đăng Ký"}
                     </button>
                   </form>
 
                   <p className="switch-form">
-                    Already have an account?{" "}
+                    Đã có tài khoản?{" "}
                     <a href="#" onClick={() => setActiveTab("login")}>
-                      Login here
+                      Đăng nhập tại đây
                     </a>
                   </p>
                 </div>
@@ -521,11 +580,11 @@ const Auth = () => {
                 </div>
               </div>
 
-              <h3 className="promo-title">Your Health, Our Priority</h3>
+              <h3 className="promo-title">Sức Khỏe Của Bạn, Ưu Tiên Của Chúng Tôi</h3>
               <p className="promo-description">
-                Join thousands of satisfied customers who trust Medicare for
-                their pharmaceutical needs. Fast delivery, quality medicines,
-                and professional care.
+                Tham gia cùng hàng nghìn khách hàng hài lòng tin tưởng Medicare cho
+                nhu cầu dược phẩm của họ. Giao hàng nhanh, thuốc chất lượng,
+                và chăm sóc chuyên nghiệp.
               </p>
 
               <div className="features">
@@ -533,19 +592,19 @@ const Auth = () => {
                   <div className="feature-icon">
                     <i className="fas fa-truck"></i>
                   </div>
-                  <span>Fast Delivery</span>
+                  <span>Giao Hàng Nhanh</span>
                 </div>
                 <div className="feature">
                   <div className="feature-icon">
                     <i className="fas fa-check-circle"></i>
                   </div>
-                  <span>Certified Quality</span>
+                  <span>Chất Lượng Được Chứng Nhận</span>
                 </div>
                 <div className="feature">
                   <div className="feature-icon">
                     <i className="fas fa-headset"></i>
                   </div>
-                  <span>24/7 Support</span>
+                  <span>Hỗ Trợ 24/7</span>
                 </div>
               </div>
             </div>
@@ -557,7 +616,7 @@ const Auth = () => {
       <footer className="auth-footer">
         <div className="footer-content">
           <div className="footer-left">
-            <p>&copy; 2025 Medicare. All rights reserved.</p>
+            <p>&copy; 2025 Medicare. Bảo lưu mọi quyền.</p>
           </div>
           <div className="footer-right">
             <div className="social-icons">

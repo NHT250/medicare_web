@@ -16,11 +16,11 @@ const STATUS_MAP = {
 };
 
 const STATUS_LABELS = {
-  pending: 'Pending',
-  processing: 'Processing',
-  shipped: 'Shipped',
-  delivered: 'Delivered',
-  cancelled: 'Cancelled'
+  pending: 'Đang Chờ',
+  processing: 'Đang Xử Lý',
+  shipped: 'Đã Gửi Hàng',
+  delivered: 'Đã Giao Hàng',
+  cancelled: 'Đã Hủy'
 };
 
 const TIMELINE_COMPLETION = {
@@ -67,7 +67,7 @@ const Orders = () => {
     }
 
     if (!isAuthenticated) {
-      alert('Please login to view orders');
+      alert('Vui lòng đăng nhập để xem đơn hàng');
       navigate('/login');
       return;
     }
@@ -90,7 +90,7 @@ const Orders = () => {
         navigate('/login');
         return;
       }
-      alert('Failed to load orders');
+      alert('Không thể tải đơn hàng');
     } finally {
       setLoading(false);
     }
@@ -114,14 +114,14 @@ const Orders = () => {
         } catch (syncErr) {
           console.warn('Failed to sync cart after reorder:', syncErr);
         }
-        alert(res.message || 'Added items to your cart.');
+        alert(res.message || 'Đã thêm sản phẩm vào giỏ hàng.');
       } else {
-        alert(res?.message || 'Could not reorder items.');
+        alert(res?.message || 'Không thể đặt lại đơn hàng.');
       }
       navigate('/cart');
     } catch (error) {
       console.error('Reorder error:', error);
-      alert('Could not reorder items right now.');
+      alert('Không thể đặt lại đơn hàng ngay bây giờ.');
     } finally {
       setReorderLoadingId(null);
     }
@@ -142,7 +142,7 @@ const Orders = () => {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Invoice download error:', error);
-      alert('Cannot download invoice right now.');
+      alert('Không thể tải hóa đơn ngay bây giờ.');
     } finally {
       setInvoiceLoadingId(null);
     }
@@ -182,9 +182,9 @@ const Orders = () => {
         <Navbar />
         <div className="container my-5 text-center">
           <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
+            <span className="visually-hidden">Đang tải...</span>
           </div>
-          <p className="mt-3">Loading your orders...</p>
+          <p className="mt-3">Đang tải đơn hàng của bạn...</p>
         </div>
         <Footer />
       </div>
@@ -199,18 +199,18 @@ const Orders = () => {
         <div className="page-header mb-4">
           <h2>
             <i className="fas fa-shopping-bag me-2"></i>
-            My Orders
+            Đơn Hàng Của Tôi
           </h2>
-          <p className="text-muted">View and track your order history</p>
+          <p className="text-muted">Xem và theo dõi lịch sử đơn hàng của bạn</p>
         </div>
 
         {orders.length === 0 ? (
           <div className="empty-orders text-center py-5">
             <i className="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
-            <h4 className="text-muted">No orders yet</h4>
-            <p className="text-muted">Start shopping to create your first order</p>
+            <h4 className="text-muted">Chưa có đơn hàng nào</h4>
+            <p className="text-muted">Bắt đầu mua sắm để tạo đơn hàng đầu tiên</p>
             <button className="btn btn-primary mt-3" onClick={() => navigate('/products')}>
-              Browse Products
+              Xem Sản Phẩm
             </button>
           </div>
         ) : (
@@ -235,25 +235,25 @@ const Orders = () => {
                   <div className="row align-items-center">
                     <div className="col-md-3">
                       <div className="order-info">
-                        <small className="text-muted d-block">Order ID</small>
+                        <small className="text-muted d-block">Mã Đơn Hàng</small>
                         <strong>{order.orderId}</strong>
                       </div>
                     </div>
                     <div className="col-md-3">
                       <div className="order-info">
-                        <small className="text-muted d-block">Date</small>
+                        <small className="text-muted d-block">Ngày</small>
                         <span>{formatDate(order.createdAt)}</span>
                       </div>
                     </div>
                     <div className="col-md-2">
                       <div className="order-info">
-                        <small className="text-muted d-block">Status</small>
+                        <small className="text-muted d-block">Trạng Thái</small>
                         {getStatusBadge(order.status)}
                       </div>
                     </div>
                     <div className="col-md-2">
                       <div className="order-info">
-                        <small className="text-muted d-block">Total</small>
+                        <small className="text-muted d-block">Tổng Cộng</small>
                         <strong className="text-success">${total.toFixed(2)}</strong>
                       </div>
                     </div>
@@ -264,11 +264,11 @@ const Orders = () => {
                       >
                         {expandedOrder === order._id ? (
                           <>
-                            <i className="fas fa-chevron-up me-1"></i> Hide
+                            <i className="fas fa-chevron-up me-1"></i> Ẩn
                           </>
                         ) : (
                           <>
-                            <i className="fas fa-chevron-down me-1"></i> Details
+                            <i className="fas fa-chevron-down me-1"></i> Chi Tiết
                           </>
                         )}
                       </button>
@@ -280,15 +280,15 @@ const Orders = () => {
                 {expandedOrder === order._id && (
                   <div className="card-body">
                     {/* Order Items */}
-                    <h6 className="mb-3">Order Items:</h6>
+                    <h6 className="mb-3">Sản Phẩm Đơn Hàng:</h6>
                     <div className="table-responsive">
                       <table className="table">
                         <thead>
                           <tr>
-                            <th>Product</th>
-                            <th>Price</th>
-                            <th>Quantity</th>
-                            <th>Subtotal</th>
+                            <th>Sản Phẩm</th>
+                            <th>Giá</th>
+                            <th>Số Lượng</th>
+                            <th>Tạm Tính</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -309,7 +309,7 @@ const Orders = () => {
                       <div className="col-md-6">
                         <h6 className="mb-3">
                           <i className="fas fa-shipping-fast me-2"></i>
-                          Shipping Information
+                          Thông Tin Giao Hàng
                         </h6>
                         <div className="shipping-info">
                           <p className="mb-1">
@@ -329,24 +329,24 @@ const Orders = () => {
                       <div className="col-md-6">
                         <h6 className="mb-3">
                           <i className="fas fa-receipt me-2"></i>
-                          Order Summary
+                          Tóm Tắt Đơn Hàng
                         </h6>
                         <div className="order-summary">
                           <div className="d-flex justify-content-between mb-2">
-                            <span>Subtotal:</span>
+                            <span>Tạm tính:</span>
                             <span>${subtotal.toFixed(2)}</span>
                           </div>
                           <div className="d-flex justify-content-between mb-2">
-                            <span>Shipping:</span>
+                            <span>Phí vận chuyển:</span>
                             <span>${shippingFee.toFixed(2)}</span>
                           </div>
                           <div className="d-flex justify-content-between mb-2">
-                            <span>Tax:</span>
+                            <span>Thuế:</span>
                             <span>${tax.toFixed(2)}</span>
                           </div>
                           <hr />
                           <div className="d-flex justify-content-between">
-                            <strong>Total:</strong>
+                            <strong>Tổng cộng:</strong>
                             <strong className="text-success">${total.toFixed(2)}</strong>
                           </div>
                         </div>
@@ -355,10 +355,10 @@ const Orders = () => {
                         <div className="payment-info mt-3">
                           <small className="text-muted">
                             <i className="fas fa-credit-card me-1"></i>
-                            Payment Method:{' '}
+                            Phương thức thanh toán:{' '}
                             {paymentInfo.method === 'card'
-                              ? 'Credit/Debit Card'
-                              : paymentInfo.method || 'Cash on Delivery'}
+                              ? 'Thẻ Tín Dụng/Ghi Nợ'
+                              : paymentInfo.method || 'Thanh toán khi nhận hàng'}
                           </small>
                         </div>
                       </div>
@@ -368,32 +368,32 @@ const Orders = () => {
                     <div className="order-tracking mt-4">
                       <h6 className="mb-3">
                         <i className="fas fa-truck me-2"></i>
-                        Order Tracking
+                        Theo Dõi Đơn Hàng
                       </h6>
                       <div className="tracking-timeline">
                         <div className={`tracking-step ${completedSteps.has('pending') ? 'completed' : ''}`}>
                           <div className="tracking-icon">
                             <i className="fas fa-check"></i>
                           </div>
-                          <div className="tracking-label">Order Placed</div>
+                          <div className="tracking-label">Đã Đặt Hàng</div>
                         </div>
                         <div className={`tracking-step ${completedSteps.has('processing') ? 'completed' : ''}`}>
                           <div className="tracking-icon">
                             <i className="fas fa-cog"></i>
                           </div>
-                          <div className="tracking-label">Processing</div>
+                          <div className="tracking-label">Đang Xử Lý</div>
                         </div>
                         <div className={`tracking-step ${completedSteps.has('shipped') ? 'completed' : ''}`}>
                           <div className="tracking-icon">
                             <i className="fas fa-truck"></i>
                           </div>
-                          <div className="tracking-label">Shipped</div>
+                          <div className="tracking-label">Đã Gửi Hàng</div>
                         </div>
                         <div className={`tracking-step ${completedSteps.has('delivered') ? 'completed' : ''}`}>
                           <div className="tracking-icon">
                             <i className="fas fa-home"></i>
                           </div>
-                          <div className="tracking-label">Delivered</div>
+                          <div className="tracking-label">Đã Giao Hàng</div>
                         </div>
                       </div>
                     </div>
@@ -406,7 +406,7 @@ const Orders = () => {
                         disabled={reorderLoadingId === (order._id || order.orderId)}
                       >
                         <i className="fas fa-redo me-1"></i>
-                        {reorderLoadingId === (order._id || order.orderId) ? 'Processing...' : 'Order Again'}
+                        {reorderLoadingId === (order._id || order.orderId) ? 'Đang xử lý...' : 'Đặt Lại'}
                       </button>
                       <button
                         className="btn btn-outline-secondary"
@@ -414,7 +414,7 @@ const Orders = () => {
                         disabled={invoiceLoadingId === (order._id || order.orderId)}
                       >
                         <i className="fas fa-download me-1"></i>
-                        {invoiceLoadingId === (order._id || order.orderId) ? 'Downloading...' : 'Download Invoice'}
+                        {invoiceLoadingId === (order._id || order.orderId) ? 'Đang tải...' : 'Tải Hóa Đơn'}
                       </button>
                     </div>
                   </div>

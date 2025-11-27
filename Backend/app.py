@@ -452,8 +452,16 @@ def admin_order_status_summary():
         return jsonify({"error": str(exc)}), 500
 
 # Helper function to verify reCAPTCHA
-def verify_recaptcha(recaptcha_token: str | None) -> bool:
-    """Validate the reCAPTCHA token when the feature is enabled."""
+def verify_recaptcha(recaptcha_token: str | None, remote_ip: str | None = None) -> bool:
+    """Validate the reCAPTCHA token when the feature is enabled.
+    
+    Args:
+        recaptcha_token: Token từ reCAPTCHA frontend
+        remote_ip: IP address của client (optional, để tăng bảo mật)
+    
+    Returns:
+        bool: True nếu captcha hợp lệ, False nếu không
+    """
 
     if not Config.ENABLE_RECAPTCHA:
         # Allow seamless operation when reCAPTCHA is disabled via configuration.
@@ -463,12 +471,17 @@ def verify_recaptcha(recaptcha_token: str | None) -> bool:
         return False
 
     try:
+        payload = {
+            'secret': Config.RECAPTCHA_SECRET_KEY,
+            'response': recaptcha_token
+        }
+        # Thêm remote IP nếu có (tăng bảo mật)
+        if remote_ip:
+            payload['remoteip'] = remote_ip
+        
         response = requests.post(
             'https://www.google.com/recaptcha/api/siteverify',
-            data={
-                'secret': Config.RECAPTCHA_SECRET_KEY,
-                'response': recaptcha_token
-            },
+            data=payload,
             timeout=5
         )
         result = response.json()
@@ -481,7 +494,7 @@ def verify_recaptcha(recaptcha_token: str | None) -> bool:
 @app.route('/')
 def index():
     return jsonify({
-        'message': 'Welcome to Medicare API',
+        'message': 'Chào mừng đến với Medicare API',
         'version': '1.0.0',
         'endpoints': {
             'auth': '/api/auth/register, /api/auth/login',
@@ -510,13 +523,19 @@ def register():
         required_fields = ['name', 'email', 'phone', 'password']
         missing_fields = [field for field in required_fields if not data.get(field)]
         if missing_fields:
-            return jsonify({'error': f"Missing fields: {', '.join(missing_fields)}"}), 400
+            return jsonify({'error': f"Thiếu các trường: {', '.join(missing_fields)}"}), 400
 
-
+        # Verify reCAPTCHA
+        captcha_token = data.get('recaptcha_token') or data.get('captchaToken')
+        if not captcha_token:
+            return jsonify({'error': 'Token Captcha là bắt buộc'}), 400
+        
+        if not verify_recaptcha(captcha_token, request.remote_addr):
+            return jsonify({'error': 'Captcha không hợp lệ'}), 400
 
         existing_user = db.users.find_one({'email': data['email']})
         if existing_user:
-            return jsonify({'error': 'User already exists and is verified'}), 400
+            return jsonify({'error': 'Người dùng đã tồn tại và đã được xác minh'}), 400
 
         hashed_password = bcrypt.hashpw(
             data['password'].encode('utf-8'), bcrypt.gensalt()
@@ -539,10 +558,10 @@ def register():
         user_doc['_id'] = str(result.inserted_id)
         user_doc.pop('password', None)
 
-        return jsonify({'message': 'Registration successful', 'user': serialize_doc(user_doc)}), 201
+        return jsonify({'message': 'Đăng ký thành công', 'user': serialize_doc(user_doc)}), 201
 
     except DuplicateKeyError:
-        return jsonify({'error': 'User already exists'}), 400
+        return jsonify({'error': 'Người dùng đã tồn tại'}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -552,27 +571,33 @@ def login():
         data = request.get_json() or {}
         email = data.get('email')
         password = data.get('password')
+        captcha_token = data.get('recaptcha_token') or data.get('captchaToken')
         
         print(f"🔐 LOGIN REQUEST: email={email}, password_length={len(password) if password else 0}")
 
         if not email or not password:
             print(f"❌ Missing fields: email={email}, password={password}")
-            return jsonify({'error': 'Email and password are required'}), 400
+            return jsonify({'error': 'Email và mật khẩu là bắt buộc'}), 400
 
-
+        # Verify reCAPTCHA
+        if not captcha_token:
+            return jsonify({'error': 'Token Captcha là bắt buộc'}), 400
+        
+        if not verify_recaptcha(captcha_token, request.remote_addr):
+            return jsonify({'error': 'Captcha không hợp lệ'}), 400
 
         user = db.users.find_one({'email': email})
         if not user:
             print(f"❌ User not found: {email}")
-            return jsonify({'error': 'Invalid email or password'}), 401
+            return jsonify({'error': 'Email hoặc mật khẩu không đúng'}), 401
 
         if user.get('is_banned'):
             print(f"❌ User banned: {email}")
-            return jsonify({'error': 'Account is banned'}), 403
+            return jsonify({'error': 'Tài khoản đã bị khóa'}), 403
 
         if not bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
             print(f"❌ Invalid password for: {email}")
-            return jsonify({'error': 'Invalid email or password'}), 401
+            return jsonify({'error': 'Email hoặc mật khẩu không đúng'}), 401
 
         role = user.get('role', 'customer')
         token = jwt.encode({
@@ -674,7 +699,7 @@ def get_product(product_id):
     try:
         product = db.products.find_one({'_id': ObjectId(product_id), 'is_active': True})
         if not product:
-            return jsonify({'error': 'Product not found'}), 404
+            return jsonify({'error': 'Không tìm thấy sản phẩm'}), 404
         return jsonify(serialize_doc(product))
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -1046,7 +1071,7 @@ def add_to_cart(current_user):
         # Get product
         product = db.products.find_one({'_id': product_object_id, 'is_active': True})
         if not product:
-            return jsonify({'error': 'Product not found'}), 404
+            return jsonify({'error': 'Không tìm thấy sản phẩm'}), 404
 
         try:
             quantity = int(data.get('quantity', 1))
@@ -1054,7 +1079,7 @@ def add_to_cart(current_user):
             quantity = 0
 
         if quantity < 1:
-            return jsonify({'error': 'Quantity must be at least 1'}), 400
+            return jsonify({'error': 'Số lượng phải ít nhất là 1'}), 400
 
         available_stock = int(product.get('stock') or 0)
         if available_stock < quantity:
@@ -1096,7 +1121,7 @@ def add_to_cart(current_user):
         # Update cart
         db.carts.update_one({'_id': cart['_id']}, {'$set': cart})
         
-        return jsonify({'message': 'Item added to cart', 'cart': serialize_doc(cart)})
+        return jsonify({'message': 'Sản phẩm đã được thêm vào giỏ hàng', 'cart': serialize_doc(cart)})
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -1158,15 +1183,15 @@ def create_order(current_user):
                 quantity = 0
 
             if quantity < 1:
-                return jsonify({'error': 'Quantity must be at least 1'}), 400
+                return jsonify({'error': 'Số lượng phải ít nhất là 1'}), 400
 
             product = db.products.find_one({'_id': product_object_id})
             if not product:
-                return jsonify({'error': 'Product not found'}), 404
+                return jsonify({'error': 'Không tìm thấy sản phẩm'}), 404
 
             price = float(product.get('price', 0))
             if price < 0:
-                return jsonify({'error': f"Invalid price configured for {product.get('name', 'product')}"}), 400
+                return jsonify({'error': f"Giá không hợp lệ được cấu hình cho {product.get('name', 'sản phẩm')}"}), 400
 
             available_stock = int(product.get('stock') or 0)
             if available_stock < quantity:
@@ -1262,7 +1287,7 @@ def create_order(current_user):
                             {'_id': change['product_id']},
                             {'$inc': {'stock': change['quantity']}}
                         )
-                    return jsonify({'message': f"Out of stock for {requirement['name'] or 'product'}"}), 400
+                    return jsonify({'message': f"Hết hàng cho {requirement['name'] or 'sản phẩm'}"}), 400
                 decremented.append(requirement)
 
             result = db.orders.insert_one(order)
@@ -1277,7 +1302,7 @@ def create_order(current_user):
                 # COD is considered successful after order creation
                 # Frontend will redirect to /payment-success
                 return jsonify({
-                    'message': 'Order created successfully (COD)',
+                    'message': 'Đơn hàng đã được tạo thành công (COD)',
                     'order': serialize_doc(order),
                     'paymentRedirect': {
                         'method': 'cod',

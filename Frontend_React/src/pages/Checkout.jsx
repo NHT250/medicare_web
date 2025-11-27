@@ -38,12 +38,12 @@ const Checkout = () => {
   // Redirect if not authenticated
   React.useEffect(() => {
     if (!isAuthenticated) {
-      alert('Please login to continue checkout');
+      alert('Vui lòng đăng nhập để tiếp tục thanh toán');
       navigate('/login');
     }
     
     if (cartItems.length === 0) {
-      alert('Your cart is empty');
+      alert('Giỏ hàng của bạn đang trống');
       navigate('/cart');
     }
   }, [isAuthenticated, cartItems, navigate]);
@@ -60,7 +60,7 @@ const Checkout = () => {
     if (!shippingInfo.fullName || !shippingInfo.email || !shippingInfo.phone ||
         !shippingInfo.address || !shippingInfo.city || !shippingInfo.state ||
         !shippingInfo.zipCode) {
-      alert('Please fill in all shipping information');
+      alert('Vui lòng điền đầy đủ thông tin giao hàng');
       return false;
     }
 
@@ -199,12 +199,12 @@ const Checkout = () => {
             <div className="success-icon">
               <i className="fas fa-check-circle text-success"></i>
             </div>
-            <h2>Order Placed Successfully!</h2>
-            <p className="lead">Your order ID is: <strong>{orderId}</strong></p>
-            <p>Thank you for your purchase. Your order is being processed.</p>
-            <p className="text-muted">Redirecting to orders page...</p>
+            <h2>Đặt Hàng Thành Công!</h2>
+            <p className="lead">Mã đơn hàng của bạn là: <strong>{orderId}</strong></p>
+            <p>Cảm ơn bạn đã mua hàng. Đơn hàng của bạn đang được xử lý.</p>
+            <p className="text-muted">Đang chuyển đến trang đơn hàng...</p>
             <div className="spinner-border text-primary mt-3" role="status">
-              <span className="visually-hidden">Loading...</span>
+              <span className="visually-hidden">Đang tải...</span>
             </div>
           </div>
         </div>
@@ -218,7 +218,7 @@ const Checkout = () => {
       <Navbar />
 
       <div className="container my-5">
-        <h2 className="mb-4">Checkout</h2>
+        <h2 className="mb-4">Thanh Toán</h2>
 
         <div className="row">
           {/* Checkout Form */}
@@ -229,13 +229,13 @@ const Checkout = () => {
                 <div className="card-header">
                   <h5 className="mb-0">
                     <i className="fas fa-shipping-fast me-2"></i>
-                    Shipping Information
+                    Thông Tin Giao Hàng
                   </h5>
                 </div>
                 <div className="card-body">
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Full Name *</label>
+                      <label className="form-label">Họ và Tên *</label>
                       <input
                         type="text"
                         className="form-control"
@@ -260,7 +260,7 @@ const Checkout = () => {
                   
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Phone *</label>
+                      <label className="form-label">Số Điện Thoại *</label>
                       <input
                         type="tel"
                         className="form-control"
@@ -271,14 +271,14 @@ const Checkout = () => {
                       />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Address *</label>
+                      <label className="form-label">Địa Chỉ *</label>
                       <input
                         type="text"
                         className="form-control"
                         name="address"
                         value={shippingInfo.address}
                         onChange={handleShippingChange}
-                        placeholder="Street address"
+                        placeholder="Số nhà, tên đường"
                         required
                       />
                     </div>
@@ -286,7 +286,7 @@ const Checkout = () => {
 
                   <div className="row">
                     <div className="col-md-4 mb-3">
-                      <label className="form-label">City *</label>
+                      <label className="form-label">Thành Phố *</label>
                       <input
                         type="text"
                         className="form-control"
@@ -297,7 +297,7 @@ const Checkout = () => {
                       />
                     </div>
                     <div className="col-md-4 mb-3">
-                      <label className="form-label">State *</label>
+                      <label className="form-label">Tỉnh/Thành Phố *</label>
                       <input
                         type="text"
                         className="form-control"
@@ -308,7 +308,7 @@ const Checkout = () => {
                       />
                     </div>
                     <div className="col-md-4 mb-3">
-                      <label className="form-label">ZIP Code *</label>
+                      <label className="form-label">Mã Bưu Điện *</label>
                       <input
                         type="text"
                         className="form-control"
@@ -407,12 +407,12 @@ const Checkout = () => {
                 {loading ? (
                   <>
                     <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                    Processing...
+                    Đang xử lý...
                   </>
                 ) : (
                   <>
                     <i className="fas fa-check-circle me-2"></i>
-                    Place Order
+                    Đặt Hàng
                   </>
                 )}
               </button>
@@ -423,7 +423,7 @@ const Checkout = () => {
           <div className="col-lg-4">
             <div className="card sticky-top" style={{ top: '20px' }}>
               <div className="card-header bg-primary text-white">
-                <h5 className="mb-0">Order Summary</h5>
+                <h5 className="mb-0">Tóm Tắt Đơn Hàng</h5>
               </div>
               <div className="card-body">
                 {/* Cart Items */}
@@ -439,7 +439,7 @@ const Checkout = () => {
                           />
                           <div className="ms-2">
                             <h6 className="mb-0">{item.name}</h6>
-                            <small className="text-muted">Qty: {item.quantity}</small>
+                            <small className="text-muted">SL: {item.quantity}</small>
                           </div>
                         </div>
                         <span className="fw-bold">${(item.price * item.quantity).toFixed(2)}</span>
@@ -452,20 +452,20 @@ const Checkout = () => {
                 {/* Price Breakdown */}
                 <div className="price-breakdown">
                   <div className="d-flex justify-content-between mb-2">
-                    <span>Subtotal:</span>
+                    <span>Tạm tính:</span>
                     <span>${cartTotal.toFixed(2)}</span>
                   </div>
                   <div className="d-flex justify-content-between mb-2">
-                    <span>Shipping:</span>
+                    <span>Phí vận chuyển:</span>
                     <span>${shippingFee.toFixed(2)}</span>
                   </div>
                   <div className="d-flex justify-content-between mb-3">
-                    <span>Tax (8%):</span>
+                    <span>Thuế (8%):</span>
                     <span>${tax.toFixed(2)}</span>
                   </div>
                   <hr />
                   <div className="d-flex justify-content-between mb-0">
-                    <strong>Total:</strong>
+                    <strong>Tổng cộng:</strong>
                     <strong className="text-success fs-4">${total.toFixed(2)}</strong>
                   </div>
                 </div>

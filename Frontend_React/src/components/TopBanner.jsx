@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import "./TopBanner.css";
 
 const messages = [
-  "🚚 Free shipping for orders over 500.000đ",
-  "⏱ Fast delivery within 2 hours in selected areas",
+  "🚚 Miễn phí vận chuyển cho đơn hàng trên 500.000đ",
+  "⏱ Giao hàng nhanh trong vòng 2 giờ tại các khu vực được chọn",
   "☎ Hotline: 1900 1234 (08:00 – 22:00)",
 ];
 

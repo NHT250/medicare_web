@@ -32,7 +32,7 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
-    if (window.confirm("Are you sure you want to logout?")) {
+    if (window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
       logout();
       setShowUserDropdown(false);
       navigate("/");
@@ -80,7 +80,7 @@ const Navbar = () => {
             <input
               type="text"
               className="form-control search-input"
-              placeholder="Search medicines..."
+              placeholder="Tìm kiếm thuốc..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -99,7 +99,7 @@ const Navbar = () => {
                   className="btn btn-outline-primary d-none d-lg-inline"
                   onClick={() => navigate("/admin")}
                 >
-                  <i className="fas fa-tools me-2"></i> Admin Panel
+                  <i className="fas fa-tools me-2"></i> Bảng Quản Trị
                 </button>
               )}
               {/* Cart Icon */}
@@ -107,7 +107,7 @@ const Navbar = () => {
                 className="cart-icon position-relative"
                 onClick={() => navigate("/cart")}
                 style={{ cursor: "pointer" }}
-                title="Shopping Cart"
+                title="Giỏ hàng"
               >
                 <i className="fas fa-shopping-cart fs-4 text-muted"></i>
                 {cartCount > 0 && (
@@ -129,7 +129,7 @@ const Navbar = () => {
                   </div>
                   <div className="user-info d-none d-lg-block">
                     <div className="user-name">{user.name || user.email}</div>
-                    <div className="user-role">{userRole === "admin" ? "Admin" : "Customer"}</div>
+                    <div className="user-role">{userRole === "admin" ? "Quản trị viên" : "Khách hàng"}</div>
                   </div>
                   <i className={`fas fa-chevron-${showUserDropdown ? 'up' : 'down'} ms-2 text-muted`}></i>
                 </div>
@@ -142,7 +142,7 @@ const Navbar = () => {
                         {getInitials(user.name)}
                       </div>
                       <div>
-                        <div className="dropdown-user-name">{user.name || 'User'}</div>
+                        <div className="dropdown-user-name">{user.name || 'Người dùng'}</div>
                         <div className="dropdown-user-email">{user.email}</div>
                       </div>
                     </div>
@@ -156,7 +156,7 @@ const Navbar = () => {
                         }}
                       >
                         <i className="fas fa-tools me-2"></i>
-                        Admin Dashboard
+                        Bảng Quản Trị
                       </button>
                     )}
                     <button
@@ -167,7 +167,7 @@ const Navbar = () => {
                       }}
                     >
                       <i className="fas fa-user me-2"></i>
-                      My Profile
+                      Hồ Sơ Của Tôi
                     </button>
                     <button
                       className="dropdown-item"
@@ -177,7 +177,7 @@ const Navbar = () => {
                       }}
                     >
                       <i className="fas fa-shopping-bag me-2"></i>
-                      My Orders
+                      Đơn Hàng Của Tôi
                     </button>
                     <button
                       className="dropdown-item"
@@ -187,7 +187,7 @@ const Navbar = () => {
                       }}
                     >
                       <i className="fas fa-shopping-cart me-2"></i>
-                      My Cart
+                      Giỏ Hàng
                     </button>
                     <div className="dropdown-divider"></div>
                     <button
@@ -195,7 +195,7 @@ const Navbar = () => {
                       onClick={handleLogout}
                     >
                       <i className="fas fa-sign-out-alt me-2"></i>
-                      Logout
+                      Đăng Xuất
                     </button>
                   </div>
                 )}
@@ -208,7 +208,7 @@ const Navbar = () => {
                 className="cart-icon position-relative"
                 onClick={() => navigate("/cart")}
                 style={{ cursor: "pointer" }}
-                title="Shopping Cart"
+                title="Giỏ hàng"
               >
                 <i className="fas fa-shopping-cart fs-4 text-muted"></i>
                 {cartCount > 0 && (
@@ -222,13 +222,13 @@ const Navbar = () => {
                 className="btn btn-outline-secondary"
                 onClick={() => navigate("/login")}
               >
-                Login
+                Đăng Nhập
               </button>
               <button
                 className="btn btn-primary"
                 onClick={() => navigate("/login")}
               >
-                Register
+                Đăng Ký
               </button>
             </>
           )}

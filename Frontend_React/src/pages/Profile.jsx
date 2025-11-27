@@ -44,7 +44,7 @@ const Profile = () => {
     }
 
     if (!isAuthenticated) {
-      alert("Please login to view profile");
+      alert("Vui lòng đăng nhập để xem hồ sơ");
       navigate("/login");
       return;
     }
@@ -118,7 +118,7 @@ const Profile = () => {
       if (response.user) {
         // Update local state with response from server
         updateUser(response.user);
-        alert("Profile updated successfully!");
+        alert("Cập nhật hồ sơ thành công!");
         setIsEditing(false);
         setFormError("");
       } else {
@@ -137,7 +137,7 @@ const Profile = () => {
       if (apiMessage === "Email already exists") {
         setFormError(apiMessage);
       } else {
-        alert(apiMessage || "Failed to update profile");
+        alert(apiMessage || "Cập nhật hồ sơ thất bại");
       }
     } finally {
       setLoading(false);
@@ -167,7 +167,7 @@ const Profile = () => {
         month: "long",
       });
     }
-    return "Recently";
+    return "Gần đây";
   };
 
   const getTotalSpent = () => {
@@ -180,7 +180,7 @@ const Profile = () => {
         <Navbar />
         <div className="container my-5 text-center">
           <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
+            <span className="visually-hidden">Đang tải...</span>
           </div>
         </div>
         <Footer />
@@ -205,29 +205,29 @@ const Profile = () => {
                   </div>
                   <button className="btn btn-sm btn-outline-primary mt-2">
                     <i className="fas fa-camera me-1"></i>
-                    Change Photo
+                    Đổi Ảnh
                   </button>
                 </div>
 
                 {/* User Info */}
-                <h4 className="mt-3 mb-1">{formData.name || "User"}</h4>
+                <h4 className="mt-3 mb-1">{formData.name || "Người dùng"}</h4>
                 <p className="text-muted mb-3">{formData.email}</p>
 
                 {/* Stats */}
                 <div className="user-stats">
                   <div className="stat-item">
                     <div className="stat-value">{orders.length}</div>
-                    <div className="stat-label">Orders</div>
+                    <div className="stat-label">Đơn Hàng</div>
                   </div>
                   <div className="stat-item">
                     <div className="stat-value">${getTotalSpent()}</div>
-                    <div className="stat-label">Total Spent</div>
+                    <div className="stat-label">Tổng Chi Tiêu</div>
                   </div>
                   <div className="stat-item">
                     <div className="stat-value">
-                      <i className="fas fa-star text-warning"></i> Member
+                      <i className="fas fa-star text-warning"></i> Thành Viên
                     </div>
-                    <div className="stat-label">Since {getMemberSince()}</div>
+                    <div className="stat-label">Từ {getMemberSince()}</div>
                   </div>
                 </div>
 
@@ -240,14 +240,14 @@ const Profile = () => {
                     onClick={() => navigate("/orders")}
                   >
                     <i className="fas fa-shopping-bag me-2"></i>
-                    My Orders
+                    Đơn Hàng Của Tôi
                   </button>
                   <button
                     className="btn btn-outline-secondary w-100"
                     onClick={() => navigate("/products")}
                   >
                     <i className="fas fa-shopping-cart me-2"></i>
-                    Continue Shopping
+                    Tiếp Tục Mua Sắm
                   </button>
                 </div>
               </div>
@@ -267,7 +267,7 @@ const Profile = () => {
                       onClick={() => setActiveTab("info")}
                     >
                       <i className="fas fa-user me-2"></i>
-                      Personal Info
+                      Thông Tin Cá Nhân
                     </button>
                   </li>
                   <li className="nav-item">
@@ -278,7 +278,7 @@ const Profile = () => {
                       onClick={() => setActiveTab("security")}
                     >
                       <i className="fas fa-lock me-2"></i>
-                      Security
+                      Bảo Mật
                     </button>
                   </li>
                   <li className="nav-item">
@@ -289,7 +289,7 @@ const Profile = () => {
                       onClick={() => setActiveTab("activity")}
                     >
                       <i className="fas fa-history me-2"></i>
-                      Activity
+                      Hoạt Động
                     </button>
                   </li>
                 </ul>
@@ -300,14 +300,14 @@ const Profile = () => {
                 {activeTab === "info" && (
                   <div className="tab-content">
                     <div className="d-flex justify-content-between align-items-center mb-4">
-                      <h5>Personal Information</h5>
+                      <h5>Thông Tin Cá Nhân</h5>
                       {!isEditing ? (
                         <button
                           className="btn btn-primary"
                           onClick={() => setIsEditing(true)}
                         >
                           <i className="fas fa-edit me-2"></i>
-                          Edit Profile
+                          Chỉnh Sửa Hồ Sơ
                         </button>
                       ) : (
                         <div>
@@ -317,7 +317,7 @@ const Profile = () => {
                             disabled={loading}
                           >
                             <i className="fas fa-check me-2"></i>
-                            Save Changes
+                            Lưu Thay Đổi
                           </button>
                           <button
                             className="btn btn-outline-secondary"
@@ -325,7 +325,7 @@ const Profile = () => {
                             disabled={loading}
                           >
                             <i className="fas fa-times me-2"></i>
-                            Cancel
+                            Hủy
                           </button>
                         </div>
                       )}
@@ -334,7 +334,7 @@ const Profile = () => {
                     <form>
                       {/* Full Name */}
                       <div className="mb-3">
-                        <label className="form-label">Full Name</label>
+                        <label className="form-label">Họ và Tên</label>
                         <input
                           type="text"
                           className="form-control"
@@ -347,7 +347,7 @@ const Profile = () => {
 
                       {/* Email */}
                       <div className="mb-3">
-                        <label className="form-label">Email Address</label>
+                        <label className="form-label">Địa Chỉ Email</label>
                         <input
                           type="email"
                           className="form-control"
@@ -363,7 +363,7 @@ const Profile = () => {
 
                       {/* Phone */}
                       <div className="mb-3">
-                        <label className="form-label">Phone Number</label>
+                        <label className="form-label">Số Điện Thoại</label>
                         <input
                           type="tel"
                           className="form-control"
@@ -375,11 +375,11 @@ const Profile = () => {
                       </div>
 
                       <hr className="my-4" />
-                      <h6 className="mb-3">Address Information</h6>
+                      <h6 className="mb-3">Thông Tin Địa Chỉ</h6>
 
                       {/* Street Address */}
                       <div className="mb-3">
-                        <label className="form-label">Street Address</label>
+                        <label className="form-label">Địa Chỉ Đường</label>
                         <input
                           type="text"
                           className="form-control"
@@ -393,7 +393,7 @@ const Profile = () => {
                       <div className="row">
                         {/* City */}
                         <div className="col-md-6 mb-3">
-                          <label className="form-label">City</label>
+                          <label className="form-label">Thành Phố</label>
                           <input
                             type="text"
                             className="form-control"
@@ -406,7 +406,7 @@ const Profile = () => {
 
                         {/* State */}
                         <div className="col-md-6 mb-3">
-                          <label className="form-label">State</label>
+                          <label className="form-label">Tỉnh/Thành Phố</label>
                           <input
                             type="text"
                             className="form-control"
@@ -421,7 +421,7 @@ const Profile = () => {
                       <div className="row">
                         {/* ZIP Code */}
                         <div className="col-md-6 mb-3">
-                          <label className="form-label">ZIP Code</label>
+                          <label className="form-label">Mã Bưu Điện</label>
                           <input
                             type="text"
                             className="form-control"
@@ -434,7 +434,7 @@ const Profile = () => {
 
                         {/* Country */}
                         <div className="col-md-6 mb-3">
-                          <label className="form-label">Country</label>
+                          <label className="form-label">Quốc Gia</label>
                           <input
                             type="text"
                             className="form-control"
@@ -452,50 +452,50 @@ const Profile = () => {
                 {/* Security Tab */}
                 {activeTab === "security" && (
                   <div className="tab-content">
-                    <h5 className="mb-4">Security Settings</h5>
+                    <h5 className="mb-4">Cài Đặt Bảo Mật</h5>
 
                     <div className="security-section mb-4">
-                      <h6>Change Password</h6>
+                      <h6>Đổi Mật Khẩu</h6>
                       <p className="text-muted">
-                        Update your password to keep your account secure
+                        Cập nhật mật khẩu để giữ tài khoản của bạn an toàn
                       </p>
                       <button className="btn btn-outline-primary">
                         <i className="fas fa-key me-2"></i>
-                        Change Password
+                        Đổi Mật Khẩu
                       </button>
                     </div>
 
                     <hr />
 
                     <div className="security-section mb-4">
-                      <h6>Two-Factor Authentication</h6>
+                      <h6>Xác Thực Hai Yếu Tố</h6>
                       <p className="text-muted">
-                        Add an extra layer of security to your account
+                        Thêm một lớp bảo mật bổ sung cho tài khoản của bạn
                       </p>
                       <button className="btn btn-outline-success">
                         <i className="fas fa-shield-alt me-2"></i>
-                        Enable 2FA
+                        Bật 2FA
                       </button>
                     </div>
 
                     <hr />
 
                     <div className="security-section">
-                      <h6>Active Sessions</h6>
+                      <h6>Phiên Đăng Nhập Hoạt Động</h6>
                       <p className="text-muted">
-                        Manage your active sessions across devices
+                        Quản lý các phiên đăng nhập hoạt động trên các thiết bị
                       </p>
                       <div className="session-item">
                         <div className="d-flex justify-content-between align-items-center">
                           <div>
                             <i className="fas fa-desktop me-2"></i>
-                            <strong>Current Device</strong>
+                            <strong>Thiết Bị Hiện Tại</strong>
                             <br />
                             <small className="text-muted">
-                              Windows • Last active: Now
+                              Windows • Hoạt động lần cuối: Bây giờ
                             </small>
                           </div>
-                          <span className="badge bg-success">Active</span>
+                          <span className="badge bg-success">Đang Hoạt Động</span>
                         </div>
                       </div>
                     </div>
@@ -505,7 +505,7 @@ const Profile = () => {
                 {/* Activity Tab */}
                 {activeTab === "activity" && (
                   <div className="tab-content">
-                    <h5 className="mb-4">Recent Activity</h5>
+                    <h5 className="mb-4">Hoạt Động Gần Đây</h5>
 
                     <div className="activity-timeline">
                       {orders.slice(0, 5).map((order, index) => (
@@ -514,9 +514,9 @@ const Profile = () => {
                             <i className="fas fa-shopping-bag"></i>
                           </div>
                           <div className="activity-content">
-                            <h6>Order Placed</h6>
+                            <h6>Đã Đặt Hàng</h6>
                             <p className="text-muted mb-1">
-                              Order #{order.orderId} - ${order.total.toFixed(2)}
+                              Đơn hàng #{order.orderId} - ${order.total.toFixed(2)}
                             </p>
                             <small className="text-muted">
                               {new Date(order.createdAt).toLocaleDateString()}
@@ -528,7 +528,7 @@ const Profile = () => {
                       {orders.length === 0 && (
                         <div className="text-center py-5">
                           <i className="fas fa-history fa-3x text-muted mb-3"></i>
-                          <p className="text-muted">No recent activity</p>
+                          <p className="text-muted">Không có hoạt động gần đây</p>
                         </div>
                       )}
                     </div>

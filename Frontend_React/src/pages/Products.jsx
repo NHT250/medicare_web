@@ -76,7 +76,7 @@ const Products = () => {
 
   const handleAddToCart = (product) => {
     addToCart(product, 1);
-    alert(`${product.name} added to cart!`);
+    alert(`${product.name} đã được thêm vào giỏ hàng!`);
   };
 
   const handleCategoryChange = (category) => {
@@ -119,13 +119,13 @@ const Products = () => {
           {/* Sidebar - Filters */}
           <div className="col-lg-3 mb-4">
             <div className="filters-sidebar">
-              <h5 className="mb-3">Categories</h5>
+              <h5 className="mb-3">Danh Mục</h5>
               <div className="category-list">
                 <div
                   className={`category-item ${filters.category === 'all' ? 'active' : ''}`}
                   onClick={() => handleCategoryChange('all')}
                 >
-                  All Products
+                  Tất Cả Sản Phẩm
                 </div>
                 {FIXED_CATEGORIES.map((cat) => (
                   <div
@@ -140,17 +140,17 @@ const Products = () => {
 
               <hr className="my-4" />
 
-              <h5 className="mb-3">Sort By</h5>
+              <h5 className="mb-3">Sắp Xếp Theo</h5>
               <select
                 className="form-select"
                 value={filters.sortBy}
                 onChange={handleSortChange}
               >
-                <option value="popularity">Popularity</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="rating">Rating</option>
-                <option value="name">Name</option>
+                <option value="popularity">Độ Phổ Biến</option>
+                <option value="price-low">Giá: Thấp đến Cao</option>
+                <option value="price-high">Giá: Cao đến Thấp</option>
+                <option value="rating">Đánh Giá</option>
+                <option value="name">Tên</option>
               </select>
             </div>
           </div>
@@ -158,13 +158,13 @@ const Products = () => {
           {/* Products Grid */}
           <div className="col-lg-9">
             <div className="d-flex justify-content-between align-items-center mb-4">
-              <h4>{totalProducts} Products Found</h4>
+              <h4>Tìm thấy {totalProducts} Sản Phẩm</h4>
             </div>
 
             {loading ? (
               <div className="text-center py-5">
                 <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading...</span>
+                  <span className="visually-hidden">Đang tải...</span>
                 </div>
               </div>
             ) : products.length > 0 ? (
@@ -185,9 +185,9 @@ const Products = () => {
                         >
                           <img src={primaryImage} alt={product.name} className="img-fluid" />
                           {inStock ? (
-                            <div className="stock-badge in-stock">In Stock</div>
+                            <div className="stock-badge in-stock">Còn Hàng</div>
                           ) : (
-                            <div className="stock-badge out-of-stock">Out of Stock</div>
+                            <div className="stock-badge out-of-stock">Hết Hàng</div>
                           )}
                         </div>
                         <div className="product-info">
@@ -216,7 +216,7 @@ const Products = () => {
                               disabled={!inStock}
                             >
                               <i className="fas fa-shopping-cart me-1"></i>
-                              {inStock ? 'Add to Cart' : 'Unavailable'}
+                              {inStock ? 'Thêm Vào Giỏ' : 'Không Có Sẵn'}
                             </button>
                           </div>
                         </div>
@@ -228,8 +228,8 @@ const Products = () => {
             ) : (
               <div className="text-center py-5">
                 <i className="fas fa-search fa-3x text-muted mb-3"></i>
-                <h4 className="text-muted">No products found</h4>
-                <p className="text-muted">Try adjusting your filters or search terms</p>
+                <h4 className="text-muted">Không tìm thấy sản phẩm</h4>
+                <p className="text-muted">Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm</p>
               </div>
             )}
           </div>

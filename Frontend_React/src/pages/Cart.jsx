@@ -25,7 +25,7 @@ const Cart = () => {
   };
 
   const handleRemoveItem = (item) => {
-    if (window.confirm(`Remove ${item.name} from cart?`)) {
+    if (window.confirm(`Xóa ${item.name} khỏi giỏ hàng?`)) {
       removeFromCart(item.id);
     }
   };
@@ -39,15 +39,15 @@ const Cart = () => {
       <Navbar />
 
       <div className="container my-5">
-        <h2 className="mb-4">Shopping Cart</h2>
+        <h2 className="mb-4">Giỏ Hàng</h2>
 
         {cartItems.length === 0 ? (
           <div className="empty-cart text-center py-5">
             <i className="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
-            <h4 className="text-muted">Your cart is empty</h4>
-            <p className="text-muted">Add some items to your cart</p>
+            <h4 className="text-muted">Giỏ hàng của bạn đang trống</h4>
+            <p className="text-muted">Thêm một số sản phẩm vào giỏ hàng</p>
             <button className="btn btn-primary mt-3" onClick={() => navigate('/products')}>
-              Continue Shopping
+              Tiếp Tục Mua Sắm
             </button>
           </div>
         ) : (
@@ -113,7 +113,7 @@ const Cart = () => {
                       onClick={() => navigate('/products')}
                     >
                       <i className="fas fa-arrow-left me-2"></i>
-                      Continue Shopping
+                      Tiếp Tục Mua Sắm
                     </button>
                   </div>
                 </div>
@@ -124,24 +124,24 @@ const Cart = () => {
             <div className="col-lg-4">
               <div className="card">
                 <div className="card-header bg-primary text-white">
-                  <h5 className="mb-0">Order Summary</h5>
+                  <h5 className="mb-0">Tóm Tắt Đơn Hàng</h5>
                 </div>
                 <div className="card-body">
                   <div className="d-flex justify-content-between mb-2">
-                    <span>Subtotal:</span>
+                    <span>Tạm tính:</span>
                     <span>${cartTotal.toFixed(2)}</span>
                   </div>
                   <div className="d-flex justify-content-between mb-2">
-                    <span>Shipping:</span>
+                    <span>Phí vận chuyển:</span>
                     <span>${shippingFee.toFixed(2)}</span>
                   </div>
                   <div className="d-flex justify-content-between mb-2">
-                    <span>Tax (8%):</span>
+                    <span>Thuế (8%):</span>
                     <span>${tax.toFixed(2)}</span>
                   </div>
                   <hr />
                   <div className="d-flex justify-content-between mb-3">
-                    <strong>Total:</strong>
+                    <strong>Tổng cộng:</strong>
                     <strong className="text-primary">${total.toFixed(2)}</strong>
                   </div>
                   <button
@@ -149,7 +149,7 @@ const Cart = () => {
                     onClick={handleCheckout}
                   >
                     <i className="fas fa-lock me-2"></i>
-                    Proceed to Checkout
+                    Tiến Hành Thanh Toán
                   </button>
                 </div>
               </div>
@@ -157,7 +157,7 @@ const Cart = () => {
               {/* Payment Methods */}
               <div className="card mt-3">
                 <div className="card-body">
-                  <h6 className="mb-3">We Accept</h6>
+                  <h6 className="mb-3">Chúng Tôi Chấp Nhận</h6>
                   <div className="d-flex gap-2">
                     <i className="fab fa-cc-visa fa-2x text-primary"></i>
                     <i className="fab fa-cc-mastercard fa-2x text-danger"></i>

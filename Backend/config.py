@@ -22,7 +22,7 @@ class Config:
         'yes',
     }
     RECAPTCHA_SECRET_KEY = os.getenv(
-        'RECAPTCHA_SECRET_KEY', '6LfGbvwrAAAAADdlE7GTi5LekEyGKzde4J6_L2-z'
+        'RECAPTCHA_SECRET_KEY', '6Le3LhosAAAAAE_VA4NKJd9aC6wCeADurKxyKu8a'
     )
 
     if not JWT_SECRET_KEY:
