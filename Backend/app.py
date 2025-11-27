@@ -1,5 +1,6 @@
 # Medicare Backend API - Flask Application
 import os
+import sys
 import re
 from io import BytesIO
 from flask import Flask, jsonify, redirect, request, send_file
@@ -28,6 +29,12 @@ except Exception:
     REPORTLAB_AVAILABLE = False
 
 PAID_STATUSES = {'paid', 'completed', 'delivered', 'payment success', 'payment successful', 'shipped'}
+
+# Windows consoles often default to cp1252; ensure UTF-8 so log symbols don't crash the app.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
 
 from routes.admin import admin_bp
 from routes.admin_dashboard import dashboard_bp as admin_dashboard_bp
@@ -452,8 +459,16 @@ def admin_order_status_summary():
         return jsonify({"error": str(exc)}), 500
 
 # Helper function to verify reCAPTCHA
-def verify_recaptcha(recaptcha_token: str | None) -> bool:
-    """Validate the reCAPTCHA token when the feature is enabled."""
+def verify_recaptcha(recaptcha_token: str | None, remote_ip: str | None = None) -> bool:
+    """Validate the reCAPTCHA token when the feature is enabled.
+    
+    Args:
+        recaptcha_token: Token từ reCAPTCHA frontend
+        remote_ip: IP address của client (optional, để tăng bảo mật)
+    
+    Returns:
+        bool: True nếu captcha hợp lệ, False nếu không
+    """
 
     if not Config.ENABLE_RECAPTCHA:
         # Allow seamless operation when reCAPTCHA is disabled via configuration.
@@ -463,12 +478,17 @@ def verify_recaptcha(recaptcha_token: str | None) -> bool:
         return False
 
     try:
+        payload = {
+            'secret': Config.RECAPTCHA_SECRET_KEY,
+            'response': recaptcha_token
+        }
+        # Thêm remote IP nếu có (tăng bảo mật)
+        if remote_ip:
+            payload['remoteip'] = remote_ip
+        
         response = requests.post(
             'https://www.google.com/recaptcha/api/siteverify',
-            data={
-                'secret': Config.RECAPTCHA_SECRET_KEY,
-                'response': recaptcha_token
-            },
+            data=payload,
             timeout=5
         )
         result = response.json()
@@ -512,7 +532,13 @@ def register():
         if missing_fields:
             return jsonify({'error': f"Missing fields: {', '.join(missing_fields)}"}), 400
 
-
+        # Verify reCAPTCHA only when enabled
+        captcha_token = data.get('recaptcha_token') or data.get('captchaToken')
+        if Config.ENABLE_RECAPTCHA:
+            if not captcha_token:
+                return jsonify({'error': 'Captcha token is required'}), 400
+            if not verify_recaptcha(captcha_token, request.remote_addr):
+                return jsonify({'error': 'Captcha khong hop le'}), 400
 
         existing_user = db.users.find_one({'email': data['email']})
         if existing_user:
@@ -552,6 +578,7 @@ def login():
         data = request.get_json() or {}
         email = data.get('email')
         password = data.get('password')
+        captcha_token = data.get('recaptcha_token') or data.get('captchaToken')
         
         print(f"🔐 LOGIN REQUEST: email={email}, password_length={len(password) if password else 0}")
 
@@ -559,7 +586,13 @@ def login():
             print(f"❌ Missing fields: email={email}, password={password}")
             return jsonify({'error': 'Email and password are required'}), 400
 
-
+        # Verify reCAPTCHA only when enabled
+        if Config.ENABLE_RECAPTCHA:
+            if not captcha_token:
+                return jsonify({'error': 'Captcha token is required'}), 400
+            
+            if not verify_recaptcha(captcha_token, request.remote_addr):
+                return jsonify({'error': 'Captcha không hợp lệ'}), 400
 
         user = db.users.find_one({'email': email})
         if not user:
@@ -2340,4 +2373,3 @@ if __name__ == '__main__':
     print('Starting Medicare API Server...')
     print(f'MongoDB: {Config.MONGODB_URI}{Config.DATABASE_NAME}')
     app.run(debug=Config.DEBUG, host=Config.HOST, port=Config.PORT)
-

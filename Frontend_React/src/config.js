@@ -2,12 +2,12 @@
 
 const config = {
   // API Configuration
-  API_URL: import.meta.env.VITE_API_URL || "http://localhost:5000",
+  API_URL: import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:5000",
 
   // reCAPTCHA Configuration
   RECAPTCHA_SITE_KEY:
     import.meta.env.VITE_RECAPTCHA_SITE_KEY ||
-    "6LfGbvwrAAAAAOCXGdw0YWlf4VQ6pk6FI5nN8Bke",
+    "6Le3LhosAAAAAKgrr8AHWmBLDNUb7S0YLnC9VogU",
 
   // App Configuration
   APP_NAME: "Medicare",

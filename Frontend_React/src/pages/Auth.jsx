@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import ReCAPTCHA from "react-google-recaptcha";
+import config from "../config";
 import "../styles/Auth.css";
 
 const Auth = () => {
@@ -22,6 +24,12 @@ const Auth = () => {
     email: "",
     password: "",
   });
+  
+  // reCAPTCHA token for login
+  const [loginRecaptchaToken, setLoginRecaptchaToken] = useState(null);
+  
+  // reCAPTCHA token for register
+  const [registerRecaptchaToken, setRegisterRecaptchaToken] = useState(null);
 
   // Register form state
   const [registerForm, setRegisterForm] = useState({
@@ -62,12 +70,19 @@ const Auth = () => {
       return;
     }
 
+    // Validate reCAPTCHA
+    if (!loginRecaptchaToken) {
+      setError('Vui lòng xác nhận "I\'m not a robot".');
+      return;
+    }
+
     setLoading(true);
 
     try {
       console.log("🔐 Login attempt with:", { email: loginForm.email });
       const result = await login({
         ...loginForm,
+        recaptcha_token: loginRecaptchaToken,
       });
 
       console.log("✅ Login result:", result);
@@ -152,13 +167,18 @@ const Auth = () => {
       return;
     }
 
-
+    // Validate reCAPTCHA
+    if (!registerRecaptchaToken) {
+      setError('Vui lòng xác nhận "I\'m not a robot".');
+      return;
+    }
 
     setLoading(true);
 
     try {
       const result = await register({
         ...registerForm,
+        recaptcha_token: registerRecaptchaToken,
       });
 
       if (result.success) {
@@ -173,6 +193,7 @@ const Auth = () => {
           agreeTerms: false,
           recaptcha_token: "",
         });
+        setRegisterRecaptchaToken(null); // Reset captcha token
         setSuccess("Registration successful! You can now sign in.");
       } else {
         setError(result.error);
@@ -243,6 +264,7 @@ const Auth = () => {
                     setActiveTab("login");
                     setError("");
                     setSuccess("");
+                    setLoginRecaptchaToken(null); // Reset captcha when switching tabs
                   }}
                 >
                   Login
@@ -253,6 +275,7 @@ const Auth = () => {
                     setActiveTab("register");
                     setError("");
                     setSuccess("");
+                    setRegisterRecaptchaToken(null); // Reset captcha when switching tabs
                   }}
                 >
                   Register
@@ -332,7 +355,23 @@ const Auth = () => {
                       </a>
                     </div>
 
-
+                    {/* reCAPTCHA for Login */}
+                    <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
+                      <ReCAPTCHA
+                        sitekey={config.RECAPTCHA_SITE_KEY}
+                        onChange={(token) => {
+                          setLoginRecaptchaToken(token);
+                          setError(""); // Clear error when captcha is verified
+                        }}
+                        onExpired={() => {
+                          setLoginRecaptchaToken(null);
+                        }}
+                        onError={() => {
+                          setLoginRecaptchaToken(null);
+                          setError("Lỗi xác thực Captcha. Vui lòng thử lại.");
+                        }}
+                      />
+                    </div>
 
                     {error && (
                       <p className="text-danger text-center small mb-2">{error}</p>
@@ -489,7 +528,27 @@ const Auth = () => {
                       </label>
                     </div>
 
+                    {/* reCAPTCHA for Register */}
+                    <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
+                      <ReCAPTCHA
+                        sitekey={config.RECAPTCHA_SITE_KEY}
+                        onChange={(token) => {
+                          setRegisterRecaptchaToken(token);
+                          setError(""); // Clear error when captcha is verified
+                        }}
+                        onExpired={() => {
+                          setRegisterRecaptchaToken(null);
+                        }}
+                        onError={() => {
+                          setRegisterRecaptchaToken(null);
+                          setError("Lỗi xác thực Captcha. Vui lòng thử lại.");
+                        }}
+                      />
+                    </div>
 
+                    {error && (
+                      <p className="text-danger text-center small mb-2">{error}</p>
+                    )}
 
                     <button
                       type="submit"
