@@ -1,0 +1,48 @@
+<svg width="1200" height="600" viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Weekly deals health products banner">
+  <defs>
+    <linearGradient id="deals-bg" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6DDCFF" />
+      <stop offset="100%" stop-color="#7F60F9" />
+    </linearGradient>
+    <clipPath id="deals-rounded">
+      <rect width="1200" height="600" rx="28" ry="28" />
+    </clipPath>
+  </defs>
+  <g clip-path="url(#deals-rounded)">
+    <rect width="1200" height="600" fill="url(#deals-bg)" />
+    <g fill="#fff" opacity="0.12">
+      <circle cx="180" cy="140" r="70" />
+      <circle cx="320" cy="100" r="36" />
+      <rect x="80" y="360" width="160" height="18" rx="9" />
+      <rect x="120" y="390" width="120" height="18" rx="9" />
+      <circle cx="1040" cy="140" r="46" />
+      <rect x="960" y="360" width="160" height="18" rx="9" />
+    </g>
+    <text x="120" y="120" font-family="'Inter', sans-serif" font-size="24" font-weight="700" fill="#003480">Medical Support</text>
+    <text x="120" y="180" font-family="'Inter', sans-serif" font-size="60" font-weight="800" fill="#ffffff">Weekly Health Deals</text>
+    <text x="120" y="230" font-family="'Inter', sans-serif" font-size="22" fill="#E5F0FF">Exclusive offers on vitamins, skin care, and essentials.</text>
+    <g fill="#003480" font-family="'Inter', sans-serif" font-size="18" font-weight="700" opacity="0.85" transform="translate(120,280)">
+      <text x="0" y="0">Facebook</text>
+      <text x="130" y="0">Twitter</text>
+      <text x="250" y="0">YouTube</text>
+    </g>
+    <g transform="translate(640,80)">
+      <rect x="0" y="0" width="480" height="440" rx="26" fill="#EAF5FF" />
+      <path d="M40 200 C90 80 220 40 320 120 C430 200 420 340 300 370 C200 394 120 320 110 260" fill="#B4DEFF" />
+      <circle cx="200" cy="210" r="130" fill="#71C4FF" opacity="0.85" />
+      <path d="M210 80 l-24 44 h16 l-24 46 h48 l-24 42 h22 l-24 44" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+      <circle cx="200" cy="210" r="80" fill="#fff" opacity="0.9" />
+      <rect x="165" y="120" width="70" height="40" rx="12" fill="#48B5FF" />
+      <rect x="152" y="170" width="96" height="80" rx="24" fill="#1EA4FF" />
+      <rect x="174" y="190" width="52" height="50" rx="14" fill="#fff" opacity="0.92" />
+      <rect x="270" y="210" width="70" height="110" rx="18" fill="#FF9AA2" />
+      <circle cx="305" cy="210" r="28" fill="#FFD6DC" />
+      <rect x="260" y="190" width="36" height="14" rx="7" fill="#fff" opacity="0.8" />
+      <rect x="90" y="200" width="70" height="110" rx="18" fill="#9FE7C0" />
+      <rect x="104" y="180" width="48" height="16" rx="8" fill="#fff" opacity="0.8" />
+      <circle cx="220" cy="330" r="24" fill="#003480" opacity="0.18" />
+      <circle cx="360" cy="130" r="16" fill="#fff" opacity="0.65" />
+      <circle cx="120" cy="130" r="18" fill="#fff" opacity="0.65" />
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,231 @@
+/* Checkout Page Styles */
+
+.checkout-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f8f9fa;
+}
+
+.checkout-page .container {
+  flex: 1;
+}
+
+/* Success Message */
+.success-message {
+  padding: 60px 20px;
+}
+
+.success-icon {
+  font-size: 100px;
+  margin-bottom: 30px;
+}
+
+.success-message h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #28a745;
+  margin-bottom: 20px;
+}
+
+.success-message .lead {
+  font-size: 1.3rem;
+  margin-bottom: 15px;
+}
+
+/* Cards */
+.card {
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.card-header {
+  background: white;
+  border-bottom: 2px solid #f0f0f0;
+  padding: 20px;
+  border-radius: 10px 10px 0 0 !important;
+}
+
+.card-header h5 {
+  color: #333;
+  font-weight: 600;
+  margin: 0;
+}
+
+.card-body {
+  padding: 25px;
+}
+
+/* Form Styles */
+.form-label {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.form-control {
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 15px;
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.1);
+}
+
+/* Payment Methods */
+.payment-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-check {
+  padding: 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.form-check:hover {
+  border-color: #007bff;
+  background: #f8f9fa;
+}
+
+.form-check-input:checked + .form-check-label {
+  color: #007bff;
+  font-weight: 600;
+}
+
+.form-check-label {
+  cursor: pointer;
+  font-size: 1rem;
+  margin-left: 10px;
+}
+
+/* Order Summary */
+.order-items {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.order-item {
+  margin-bottom: 10px;
+}
+
+.item-image {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  background: #f8f9fa;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.order-item h6 {
+  font-size: 0.9rem;
+  color: #333;
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.order-item hr {
+  margin: 10px 0;
+}
+
+/* Price Breakdown */
+.price-breakdown {
+  padding-top: 15px;
+}
+
+.price-breakdown .d-flex {
+  font-size: 1rem;
+}
+
+.price-breakdown strong {
+  font-size: 1.1rem;
+}
+
+/* Buttons */
+.btn-lg {
+  padding: 15px 30px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border: none;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-success:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Sticky Order Summary */
+@media (min-width: 992px) {
+  .sticky-top {
+    position: sticky;
+    top: 20px;
+    z-index: 10;
+  }
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+  .success-icon {
+    font-size: 60px;
+  }
+
+  .success-message h2 {
+    font-size: 1.8rem;
+  }
+
+  .success-message .lead {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .card-body {
+    padding: 15px;
+  }
+
+  .form-control {
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+
+  .btn-lg {
+    padding: 12px 20px;
+    font-size: 1rem;
+  }
+
+  .item-image {
+    width: 40px;
+    height: 40px;
+  }
+
+  .order-item h6 {
+    font-size: 0.85rem;
+    max-width: 120px;
+  }
+}
+
