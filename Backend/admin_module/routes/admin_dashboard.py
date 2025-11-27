@@ -1,9 +1,9 @@
 from datetime import datetime
 from flask import Blueprint, jsonify, request
-from ..middlewares.auth import admin_required
+from ..middlewares.auth import admin_required, token_required
 from ..services import dashboard_service
 
-bp = Blueprint("admin_dashboard", __name__, url_prefix="/api/admin/dashboard")
+admin_dashboard_bp = Blueprint("admin_dashboard", __name__, url_prefix="/api/admin/dashboard")
 
 
 def parse_date(value):
@@ -13,7 +13,8 @@ def parse_date(value):
         return None
 
 
-@bp.get("/summary")
+@admin_dashboard_bp.get("/summary")
+@token_required
 @admin_required
 def summary():
     from_date = parse_date(request.args.get("from"))
@@ -22,7 +23,8 @@ def summary():
     return jsonify({"data": data})
 
 
-@bp.get("/recent-orders")
+@admin_dashboard_bp.get("/recent-orders")
+@token_required
 @admin_required
 def recent_orders():
     limit = int(request.args.get("limit", 5))
@@ -30,7 +32,8 @@ def recent_orders():
     return jsonify({"data": data})
 
 
-@bp.get("/recent-users")
+@admin_dashboard_bp.get("/recent-users")
+@token_required
 @admin_required
 def recent_users():
     limit = int(request.args.get("limit", 5))
@@ -39,7 +42,8 @@ def recent_users():
     return jsonify({"data": data})
 
 
-@bp.get("/revenue")
+@admin_dashboard_bp.get("/revenue")
+@token_required
 @admin_required
 def revenue():
     range_param = request.args.get("range")
@@ -51,28 +55,28 @@ def revenue():
     return jsonify({"data": data})
 
 
-@bp.get("/category-stats")
+@admin_dashboard_bp.route("/category-stats", methods=["GET", "OPTIONS"])
+@token_required
 @admin_required
 def category_stats():
-    range_param = request.args.get("range", "30d")
-    range_days = int(range_param[:-1]) if range_param.endswith("d") else 30
-    data = dashboard_service.category_stats(range_days)
-    return jsonify({"data": data})
+    range_str = request.args.get("range", "30d")
+    data = dashboard_service.get_category_stats(range_str)
+    return jsonify({"data": data}), 200
 
 
-@bp.get("/payment-methods")
+@admin_dashboard_bp.route("/payment-methods", methods=["GET", "OPTIONS"])
+@token_required
 @admin_required
 def payment_methods():
-    range_param = request.args.get("range", "30d")
-    range_days = int(range_param[:-1]) if range_param.endswith("d") else 30
-    data = dashboard_service.payment_stats(range_days)
-    return jsonify({"data": data})
+    range_str = request.args.get("range", "30d")
+    data = dashboard_service.get_payment_method_stats(range_str)
+    return jsonify({"data": data}), 200
 
 
-@bp.get("/order-status-summary")
+@admin_dashboard_bp.route("/order-status-summary", methods=["GET", "OPTIONS"])
+@token_required
 @admin_required
 def order_status_summary():
-    range_param = request.args.get("range", "30d")
-    range_days = int(range_param[:-1]) if range_param.endswith("d") else 30
-    data = dashboard_service.status_summary(range_days)
-    return jsonify({"data": data})
+    range_str = request.args.get("range", "30d")
+    data = dashboard_service.get_order_status_summary(range_str)
+    return jsonify({"data": data}), 200

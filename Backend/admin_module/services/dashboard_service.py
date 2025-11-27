@@ -3,6 +3,20 @@ from flask import current_app
 from bson import ObjectId
 
 
+def _parse_range_to_dates(range_str: str) -> tuple[datetime, datetime]:
+    # Accept "7d", "30d", etc. Default 7d if invalid.
+    try:
+        if range_str.endswith("d"):
+            days = int(range_str[:-1])
+        else:
+            days = int(range_str)
+    except Exception:
+        days = 7
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(days=days)
+    return start_date, end_date
+
+
 def _date_filter(from_date, to_date):
     query = {}
     if from_date or to_date:
@@ -105,12 +119,16 @@ def get_revenue(range_days=7, from_date=None, to_date=None, group_by="day"):
     return results
 
 
-def category_stats(range_days=30):
+def get_category_stats(range_str: str):
     db = current_app.mongo_db
-    to_date = datetime.utcnow()
-    from_date = to_date - timedelta(days=range_days)
+    start_date, end_date = _parse_range_to_dates(range_str)
     pipeline = [
-        {"$match": {"createdAt": {"$gte": from_date, "$lte": to_date}}},
+        {
+            "$match": {
+                "createdAt": {"$gte": start_date, "$lte": end_date},
+                "status": {"$in": ["CONFIRMED", "DELIVERED"]},
+            }
+        },
         {
             "$lookup": {
                 "from": "order_items",
@@ -142,53 +160,69 @@ def category_stats(range_days=30):
             "$group": {
                 "_id": "$category._id",
                 "categoryName": {"$first": "$category.name"},
-                "totalRevenue": {"$sum": "$items.totalPrice"},
-                "totalQuantity": {"$sum": "$items.quantity"},
+                "totalRevenue": {"$sum": {"$ifNull": ["$items.totalPrice", 0]}},
+                "totalQuantity": {"$sum": {"$ifNull": ["$items.quantity", 0]}},
             }
         },
-    ]
-    return [
-        {
-            "categoryId": str(row.get("_id")),
-            "categoryName": row.get("categoryName"),
-            "totalRevenue": row.get("totalRevenue", 0),
-            "totalQuantity": row.get("totalQuantity", 0),
-        }
-        for row in db.orders.aggregate(pipeline)
+        {"$sort": {"categoryName": 1}},
     ]
 
+    results = []
+    for row in db.orders.aggregate(pipeline):
+        results.append(
+            {
+                "categoryId": str(row.get("_id")),
+                "categoryName": row.get("categoryName"),
+                "totalRevenue": row.get("totalRevenue", 0),
+                "totalQuantity": row.get("totalQuantity", 0),
+            }
+        )
 
-def payment_stats(range_days=30):
+    return results
+
+
+def get_payment_method_stats(range_str: str):
     db = current_app.mongo_db
-    to_date = datetime.utcnow()
-    from_date = to_date - timedelta(days=range_days)
+    start_date, end_date = _parse_range_to_dates(range_str)
     pipeline = [
-        {"$match": {"createdAt": {"$gte": from_date, "$lte": to_date}}},
+        {
+            "$match": {
+                "createdAt": {"$gte": start_date, "$lte": end_date},
+                "status": {"$in": ["CONFIRMED", "DELIVERED"]},
+            }
+        },
         {
             "$group": {
-                "_id": "$paymentMethod",
+                "_id": {"$ifNull": ["$paymentMethod", "UNKNOWN"]},
                 "orders": {"$sum": 1},
-                "revenue": {"$sum": "$totalAmount"},
+                "revenue": {"$sum": {"$ifNull": ["$totalAmount", 0]}},
             }
         },
+        {"$sort": {"_id": 1}},
     ]
+
     return [
         {"method": row.get("_id"), "orders": row.get("orders", 0), "revenue": row.get("revenue", 0)}
         for row in db.orders.aggregate(pipeline)
     ]
 
 
-def status_summary(range_days=30):
+def get_order_status_summary(range_str: str):
     db = current_app.mongo_db
-    to_date = datetime.utcnow()
-    from_date = to_date - timedelta(days=range_days)
-    match = {"createdAt": {"$gte": from_date, "$lte": to_date}}
+    start_date, end_date = _parse_range_to_dates(range_str)
     pipeline = [
-        {"$match": match},
+        {"$match": {"createdAt": {"$gte": start_date, "$lte": end_date}}},
         {"$group": {"_id": "$status", "count": {"$sum": 1}}},
     ]
-    result = {row.get("_id", "PENDING"): row.get("count", 0) for row in db.orders.aggregate(pipeline)}
-    return result
+
+    summary = {"PENDING": 0, "CONFIRMED": 0, "DELIVERED": 0, "CANCELLED": 0}
+    for row in db.orders.aggregate(pipeline):
+        status = row.get("_id") or "PENDING"
+        if status not in summary:
+            summary[status] = 0
+        summary[status] = row.get("count", 0)
+
+    return summary
 
 
 __all__ = [
@@ -196,7 +230,7 @@ __all__ = [
     "get_recent_orders",
     "get_recent_users",
     "get_revenue",
-    "category_stats",
-    "payment_stats",
-    "status_summary",
+    "get_category_stats",
+    "get_payment_method_stats",
+    "get_order_status_summary",
 ]
