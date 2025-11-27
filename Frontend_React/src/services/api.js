@@ -366,6 +366,7 @@ export const usersAPI = {
   }
 };
 
+<<<<<<< HEAD
 // ========== CHAT APIs ==========
 
 export const chatAPI = {
@@ -380,4 +381,6 @@ export const chatAPI = {
   }
 };
 
+=======
+>>>>>>> c07e24c066535e759bc3b9d80a057ad1db488ca7
 export default api;

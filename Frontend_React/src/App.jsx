@@ -30,9 +30,12 @@ import AdminUserEditor from './admin/pages/AdminUserEditor';
 import AdminOrders from './admin/pages/AdminOrders';
 import AdminOrderDetail from './admin/pages/AdminOrderDetail';
 
+<<<<<<< HEAD
 // Components
 import ChatBot from './components/ChatBot';
 
+=======
+>>>>>>> c07e24c066535e759bc3b9d80a057ad1db488ca7
 // Import Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css';
 // Import Font Awesome (via CDN in index.html)
@@ -110,9 +113,12 @@ function App() {
               {/* Redirect unknown routes to homepage */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+<<<<<<< HEAD
             
             {/* AI Chatbot - hiển thị trên mọi trang */}
             <ChatBot />
+=======
+>>>>>>> c07e24c066535e759bc3b9d80a057ad1db488ca7
           </div>
         </CartProvider>
       </AuthProvider>

@@ -6,4 +6,7 @@ PyJWT==2.8.0
 python-dotenv==1.0.0
 requests==2.31.0
 Pillow==12.0.0
+<<<<<<< HEAD
 openai==0.28.0
+=======
+>>>>>>> c07e24c066535e759bc3b9d80a057ad1db488ca7

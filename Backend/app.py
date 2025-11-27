@@ -16,11 +16,14 @@ from bson.errors import InvalidId
 import json
 import requests
 try:
+<<<<<<< HEAD
     import openai
     OPENAI_AVAILABLE = True
 except Exception:
     OPENAI_AVAILABLE = False
 try:
+=======
+>>>>>>> c07e24c066535e759bc3b9d80a057ad1db488ca7
     from reportlab.lib.pagesizes import letter
     from reportlab.pdfgen import canvas
     REPORTLAB_AVAILABLE = True
@@ -818,6 +821,7 @@ def get_featured_products():
     except Exception as exc:
         return jsonify({"success": False, "message": str(exc), "data": []}), 500
 
+<<<<<<< HEAD
 # ============ AI CHATBOT ============
 
 def search_products_by_message(message):
@@ -976,6 +980,8 @@ Format câu trả lời: rõ ràng, có bullet points, thân thiện."""
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
+=======
+>>>>>>> c07e24c066535e759bc3b9d80a057ad1db488ca7
 # ============ CART ============
 
 @app.route('/api/cart', methods=['GET'])
