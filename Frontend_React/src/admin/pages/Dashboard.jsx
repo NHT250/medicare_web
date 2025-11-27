@@ -1,268 +1,167 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-
+import React, { useEffect, useState } from "react";
+import { Card, Col, Container, Row, Table } from "react-bootstrap";
 import adminApi from "../api";
 
-const initialSummary = {
-  total_revenue: 0,
-  total_orders: 0,
-  total_users: 0,
-  active_products: 0,
-};
-
-const statusVariants = {
-  pending: "bg-warning text-dark",
-  confirmed: "bg-info text-dark",
-  delivered: "bg-success",
-  cancelled: "bg-secondary",
-};
-
-const formatCurrency = (value) => {
-  const amount = Number.isFinite(Number(value)) ? Number(value) : 0;
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-  }).format(amount);
-};
-
-const formatNumber = (value) => Number(value || 0).toLocaleString();
-
-const formatDateTime = (value) => {
-  if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toLocaleString();
-};
-
-const StatCard = ({ icon, label, value, description, accent }) => (
-  <div className="col-md-6 col-xl-3">
-    <div className="card shadow-sm border-0 h-100">
-      <div className="card-body">
-        <div className="d-flex justify-content-between align-items-start">
-          <div>
-            <p className="text-uppercase text-muted small mb-1">{label}</p>
-            <h3 className={`fw-bold mb-0 ${accent || ""}`}>{value}</h3>
-          </div>
-          <span className="fs-2" aria-hidden="true">
-            {icon}
-          </span>
-        </div>
-        {description && (
-          <p className="text-muted small mb-0 mt-3">{description}</p>
-        )}
-      </div>
-    </div>
-  </div>
+const SummaryCard = ({ label, value }) => (
+  <Col md={6} lg={3} className="mb-3">
+    <Card className="shadow-sm h-100">
+      <Card.Body>
+        <p className="text-muted text-uppercase small mb-1">{label}</p>
+        <h4 className="fw-bold mb-0">{value}</h4>
+      </Card.Body>
+    </Card>
+  </Col>
 );
 
 const Dashboard = () => {
-  const [summary, setSummary] = useState(initialSummary);
+  const [summary, setSummary] = useState({});
   const [recentOrders, setRecentOrders] = useState([]);
   const [recentUsers, setRecentUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [revenue, setRevenue] = useState([]);
+  const [categoryStats, setCategoryStats] = useState([]);
+  const [paymentStats, setPaymentStats] = useState([]);
+  const [statusSummary, setStatusSummary] = useState({});
 
   useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        setLoading(true);
-        setError("");
-
-        const [summaryData, ordersData, usersData] = await Promise.all([
-          adminApi.dashboard.summary(),
-          adminApi.dashboard.recentOrders(),
-          adminApi.dashboard.recentUsers(),
-        ]);
-
-        setSummary({
-          total_revenue: Number(summaryData?.total_revenue ?? 0),
-          total_orders: Number(summaryData?.total_orders ?? 0),
-          total_users: Number(summaryData?.total_users ?? 0),
-          active_products: Number(summaryData?.active_products ?? 0),
-        });
-
-        const normalizedOrders = Array.isArray(ordersData)
-          ? ordersData
-          : Array.isArray(ordersData?.orders)
-          ? ordersData.orders
-          : [];
-        setRecentOrders(normalizedOrders);
-
-        const normalizedUsers = Array.isArray(usersData)
-          ? usersData
-          : Array.isArray(usersData?.users)
-          ? usersData.users
-          : [];
-        setRecentUsers(normalizedUsers);
-      } catch (err) {
-        console.error("Failed to load dashboard data", err);
-        setError(
-          err?.response?.data?.error ||
-            "Unable to load dashboard data. Please try again."
-        );
-      } finally {
-        setLoading(false);
-      }
+    const load = async () => {
+      const [s, o, u, r, c, p, st] = await Promise.all([
+        adminApi.dashboard.summary(),
+        adminApi.dashboard.recentOrders(),
+        adminApi.dashboard.recentUsers(),
+        adminApi.dashboard.revenue(),
+        adminApi.dashboard.categoryStats(),
+        adminApi.dashboard.paymentMethods(),
+        adminApi.dashboard.orderStatusSummary(),
+      ]);
+      setSummary(s.data || {});
+      setRecentOrders(o.data || []);
+      setRecentUsers(u.data || []);
+      setRevenue(r.data || []);
+      setCategoryStats(c.data || []);
+      setPaymentStats(p.data || []);
+      setStatusSummary(st.data || {});
     };
-
-    fetchDashboard();
+    load();
   }, []);
 
-  const statCards = useMemo(
-    () => [
-      {
-        icon: "💰",
-        label: "Total Revenue",
-        value: formatCurrency(summary.total_revenue),
-        description: "Confirmed and delivered orders",
-        accent: "text-success",
-      },
-      {
-        icon: "🧾",
-        label: "Total Orders",
-        value: formatNumber(summary.total_orders),
-      },
-      {
-        icon: "👥",
-        label: "Total Users",
-        value: formatNumber(summary.total_users),
-      },
-      {
-        icon: "💊",
-        label: "Active Products",
-        value: formatNumber(summary.active_products),
-      },
-    ],
-    [summary]
-  );
-
-  if (loading) {
-    return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-primary" role="status" aria-hidden="true" />
-        <p className="text-muted mt-3 mb-0">Loading dashboard data...</p>
-      </div>
-    );
-  }
+  const formatCurrency = (value) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value || 0);
 
   return (
-    <div className="container-fluid px-0">
-      <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between mb-4 gap-3">
-        <div>
-          <h2 className="h3 mb-1">Dashboard Overview</h2>
-          <p className="text-muted mb-0">
-            Monitor business performance and recent activity.
-          </p>
-        </div>
-      </div>
+    <Container fluid className="py-3">
+      <h2 className="mb-3">Admin Dashboard</h2>
+      <Row>
+        <SummaryCard label="Total Revenue" value={formatCurrency(summary.totalRevenue)} />
+        <SummaryCard label="Orders" value={summary.totalOrders || 0} />
+        <SummaryCard label="Users" value={summary.totalUsers || 0} />
+        <SummaryCard label="Active Products" value={summary.activeProducts || 0} />
+      </Row>
 
-      {error && (
-        <div className="alert alert-danger" role="alert">
-          {error}
-        </div>
-      )}
-
-      <div className="row g-3 mb-4">
-        {statCards.map((card) => (
-          <StatCard key={card.label} {...card} />
-        ))}
-      </div>
-
-      <div className="row g-4">
-        <div className="col-lg-6">
-          <div className="card shadow-sm border-0 h-100">
-            <div className="card-header bg-white d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">Recent Orders</h5>
-              <Link to="/admin/orders" className="btn btn-sm btn-outline-primary">
-                View All
-              </Link>
-            </div>
-            {recentOrders.length === 0 ? (
-              <div className="p-4 text-center text-muted">
-                No recent orders.
-              </div>
-            ) : (
-              <div className="table-responsive">
-                <table className="table table-hover table-nowrap mb-0">
-                  <thead className="table-light">
-                    <tr>
-                      <th scope="col">Order</th>
-                      <th scope="col">Customer</th>
-                      <th scope="col" className="text-end">
-                        Total
-                      </th>
-                      <th scope="col">Status</th>
-                      <th scope="col">Created</th>
+      <Row className="mt-3">
+        <Col lg={8} className="mb-3">
+          <Card className="shadow-sm">
+            <Card.Header>Recent Orders</Card.Header>
+            <Card.Body className="p-0">
+              <Table striped hover responsive className="mb-0">
+                <thead>
+                  <tr>
+                    <th>Order</th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentOrders.map((order) => (
+                    <tr key={order.id}>
+                      <td>{order.orderCode}</td>
+                      <td>
+                        <div className="fw-semibold">{order.customerName || "-"}</div>
+                        <div className="text-muted small">{order.customerEmail || "-"}</div>
+                      </td>
+                      <td>{order.status}</td>
+                      <td>{formatCurrency(order.totalAmount)}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {recentOrders.map((order) => {
-                      const statusKey = (order.status || "").toLowerCase();
-                      const badgeClass = statusVariants[statusKey] || "bg-secondary";
-                      return (
-                        <tr key={order.id || order.order_id}>
-                          <td>{order.order_id || order.id}</td>
-                          <td>{order.customer_name}</td>
-                          <td className="text-end fw-semibold text-success">
-                            {formatCurrency(order.total)}
-                          </td>
-                          <td>
-                            <span className={`badge text-uppercase ${badgeClass}`}>
-                              {order.status}
-                            </span>
-                          </td>
-                          <td>{formatDateTime(order.created_at)}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
+                  ))}
+                </tbody>
+              </Table>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col lg={4} className="mb-3">
+          <Card className="shadow-sm h-100">
+            <Card.Header>Recent Users</Card.Header>
+            <Card.Body>
+              {recentUsers.map((user) => (
+                <div key={user.id} className="mb-3">
+                  <div className="fw-semibold">{user.name}</div>
+                  <div className="text-muted small">{user.email}</div>
+                </div>
+              ))}
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
 
-        <div className="col-lg-6">
-          <div className="card shadow-sm border-0 h-100">
-            <div className="card-header bg-white d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">Recent Users</h5>
-              <Link to="/admin/users" className="btn btn-sm btn-outline-primary">
-                View All
-              </Link>
-            </div>
-            {recentUsers.length === 0 ? (
-              <div className="p-4 text-center text-muted">
-                No new users yet.
-              </div>
-            ) : (
-              <div className="table-responsive">
-                <table className="table table-hover table-nowrap mb-0">
-                  <thead className="table-light">
-                    <tr>
-                      <th scope="col">Name</th>
-                      <th scope="col">Email</th>
-                      <th scope="col">Joined</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentUsers.map((user) => (
-                      <tr key={user.id}>
-                        <td>{user.name}</td>
-                        <td>{user.email}</td>
-                        <td>{formatDateTime(user.created_at)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+      <Row className="mt-3">
+        <Col md={6} className="mb-3">
+          <Card className="shadow-sm h-100">
+            <Card.Header>Revenue (last range)</Card.Header>
+            <Card.Body>
+              {revenue.map((row) => (
+                <div key={row.date} className="d-flex justify-content-between border-bottom py-1">
+                  <span>{row.date}</span>
+                  <span>{formatCurrency(row.revenue)}</span>
+                </div>
+              ))}
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={6} className="mb-3">
+          <Card className="shadow-sm h-100">
+            <Card.Header>Order Status</Card.Header>
+            <Card.Body>
+              {Object.entries(statusSummary).map(([status, count]) => (
+                <div key={status} className="d-flex justify-content-between border-bottom py-1">
+                  <span>{status}</span>
+                  <span>{count}</span>
+                </div>
+              ))}
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row className="mt-3">
+        <Col md={6} className="mb-3">
+          <Card className="shadow-sm h-100">
+            <Card.Header>Category Stats</Card.Header>
+            <Card.Body>
+              {categoryStats.map((row) => (
+                <div key={row.categoryId} className="d-flex justify-content-between border-bottom py-1">
+                  <span>{row.categoryName}</span>
+                  <span>{formatCurrency(row.totalRevenue)} / Qty {row.totalQuantity}</span>
+                </div>
+              ))}
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={6} className="mb-3">
+          <Card className="shadow-sm h-100">
+            <Card.Header>Payment Methods</Card.Header>
+            <Card.Body>
+              {paymentStats.map((row) => (
+                <div key={row.method || "unknown"} className="d-flex justify-content-between border-bottom py-1">
+                  <span>{row.method}</span>
+                  <span>
+                    {row.orders} orders · {formatCurrency(row.revenue)}
+                  </span>
+                </div>
+              ))}
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 
