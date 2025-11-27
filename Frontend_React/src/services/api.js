@@ -140,6 +140,16 @@ export const productsAPI = {
       params: { search: query }
     });
     return response.data;
+  },
+
+  getFeatured: async (limit = 8) => {
+    try {
+      const response = await api.get('/api/products/featured', { params: { limit } });
+      return response.data;
+    } catch (error) {
+      console.warn('Featured products API unavailable, returning empty list.');
+      return { success: false, data: [] };
+    }
   }
 };
 
@@ -153,6 +163,19 @@ export const categoriesAPI = {
     } catch (error) {
       console.warn('Categories API unavailable, using mock categories.');
       return { categories: mockCategories };
+    }
+  },
+
+  getStats: async () => {
+    try {
+      const response = await api.get('/api/categories/stats');
+      return response.data;
+    } catch (error) {
+      console.warn('Categories stats API unavailable, falling back to zeros.');
+      return {
+        success: false,
+        data: [],
+      };
     }
   }
 };
@@ -245,6 +268,18 @@ export const ordersAPI = {
       const order = mockOrders.find((item) => item._id === id) || mockOrders[0];
       return { order };
     }
+  },
+
+  reorder: async (orderId) => {
+    const response = await api.post(`/api/orders/${orderId}/reorder`);
+    return response.data;
+  },
+
+  downloadInvoice: async (orderId) => {
+    const response = await api.get(`/api/orders/${orderId}/invoice`, {
+      responseType: 'blob'
+    });
+    return response;
   }
 };
 
@@ -273,6 +308,21 @@ export const paymentAPI = {
       return response.data;
     } catch (error) {
       console.error("❌ MoMo API Error:", error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  verifyMomoReturn: async (payload) => {
+    try {
+      console.log("🔗 API: POST /api/payment/momo/return - Verifying MoMo payment status", payload);
+      // NEW: Endpoint để verify MoMo return từ gateway
+      // Backend sẽ check database để confirm trạng thái thanh toán
+      const response = await api.post('/api/payment/momo/return', payload);
+      console.log("✅ MoMo verification response received:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ MoMo verification error:", error.response?.data || error.message);
+      // Don't throw - let caller handle gracefully with fallback
       throw error;
     }
   }

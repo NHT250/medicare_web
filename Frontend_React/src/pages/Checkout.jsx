@@ -108,17 +108,35 @@ const Checkout = () => {
         const createdOrder = response.order;
         const orderId = createdOrder._id || createdOrder.orderId;
         setOrderId(orderId);
-
-        if (paymentMethod === 'cod') {
-          // ========== COD Flow ==========
-          console.log("💵 COD Payment selected - Order created successfully");
-          setOrderPlaced(true);
+        
+        // ========== UNIFIED PAYMENT HANDLING ==========
+        // Check for new paymentRedirect field
+        const paymentRedirect = response.paymentRedirect;
+        
+        if (paymentRedirect) {
+          console.log("📊 Unified payment redirect response:", paymentRedirect);
           clearCart();
+          
+          // For COD: Redirect immediately to success page
+          if (paymentRedirect.type === 'success') {
+            console.log("✅ COD Order created - Redirecting to payment success page");
+            const redirectUrl = paymentRedirect.redirectUrl || 
+              `/payment-success?orderId=${orderId}&amount=${createdOrder.total}&method=cod`;
+            window.location.href = redirectUrl;
+            return;
+          }
+        }
 
-          // Chuyển hướng sang trang đơn hàng sau 3s
-          setTimeout(() => {
-            navigate('/orders');
-          }, 3000);
+        // Original logic for COD (fallback for backward compatibility)
+        if (paymentMethod === 'cod') {
+          // ========== COD Flow (Legacy) ==========
+          console.log("💵 COD Payment selected - Order created successfully");
+          
+          // If no paymentRedirect field (old backend), redirect to payment-success
+          if (response.paymentRedirect?.type === 'success' || !paymentRedirect) {
+            const redirectUrl = `/payment-success?orderId=${orderId}&amount=${createdOrder.total}&method=cod`;
+            window.location.href = redirectUrl;
+          }
         } else if (paymentMethod === 'vnpay') {
           // ========== VNPAY Flow ==========
           console.log("💳 VNPAY Payment - Requesting payment URL from backend");

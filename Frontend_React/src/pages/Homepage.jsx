@@ -1,6 +1,7 @@
 // Homepage Component
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { categoriesAPI, productsAPI } from "../services/api";
 import TopBanner from "../components/TopBanner";
 import Navbar from "../components/Navbar";
 import HeroSection from "../components/HeroSection";
@@ -11,44 +12,44 @@ const categories = [
   {
     id: "cat-1",
     name: "Pain Relief",
+    key: "pain_relief",
     slug: "pain-relief",
     icon: "fas fa-pills",
-    products: 25,
   },
   {
     id: "cat-2",
     name: "Vitamins",
+    key: "vitamins",
     slug: "vitamins",
     icon: "fas fa-leaf",
-    products: 25,
   },
   {
     id: "cat-3",
     name: "Skin Care",
+    key: "skin_care",
     slug: "skin-care",
     icon: "fas fa-hand-sparkles",
-    products: 25,
   },
   {
     id: "cat-4",
     name: "Heart Health",
+    key: "heart_health",
     slug: "heart-health",
     icon: "fas fa-heartbeat",
-    products: 25,
   },
   {
     id: "cat-5",
     name: "Mental Health",
+    key: "mental_health",
     slug: "mental-health",
     icon: "fas fa-brain",
-    products: 25,
   },
   {
     id: "cat-6",
     name: "Respiratory",
+    key: "respiratory",
     slug: "respiratory",
     icon: "fas fa-lungs",
-    products: 25,
   },
 ];
 
@@ -102,6 +103,52 @@ const reviews = [
 
 const Homepage = () => {
   const navigate = useNavigate();
+  const [categoryCounts, setCategoryCounts] = useState({});
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchStats = async () => {
+      try {
+        const res = await categoriesAPI.getStats();
+        if (mounted && res?.data) {
+          const counts = res.data.reduce((acc, item) => {
+            acc[item.key] = item.count || 0;
+            return acc;
+          }, {});
+          setCategoryCounts(counts);
+        }
+      } catch (error) {
+        console.error("Failed to fetch category stats:", error);
+        if (mounted) setCategoryCounts({});
+      }
+    };
+
+    fetchStats();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchFeatured = async () => {
+      try {
+        const res = await productsAPI.getFeatured(8);
+        if (mounted && res?.data) {
+          setFeaturedProducts(res.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch featured products:", error);
+        if (mounted) setFeaturedProducts([]);
+      }
+    };
+    fetchFeatured();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <div className="homepage">
@@ -126,7 +173,9 @@ const Homepage = () => {
               </div>
               <div className="category-body">
                 <h6 className="category-title">{category.name}</h6>
-                <p className="category-count text-muted">{category.products} products</p>
+                <p className="category-count text-muted">
+                  {(categoryCounts[category.key] ?? 0)} products
+                </p>
               </div>
             </div>
           ))}
@@ -202,26 +251,57 @@ const Homepage = () => {
         </div>
       </section>
 
-      <section className="featured-section section-shell" id="featured-medicines">
-        <div className="section-header text-center">
-          <p className="section-eyebrow">Highlighted for you</p>
-          <h2 className="fw-bold">Featured Medicines</h2>
-          <p className="section-subtitle">
-            Discover new arrivals and best sellers tailored to your needs.
-          </p>
-        </div>
 
-        <div className="featured-card text-center">
-          <div className="empty-icon mb-3">💙</div>
-          <h5 className="mb-2">No featured medicines yet</h5>
-          <p className="text-muted mb-4">
-            We are curating top picks for you. Browse our catalog to find what you need in the meantime.
+<section className="featured-section section-shell" id="featured-medicines">
+  <div className="section-header text-center">
+    <p className="section-eyebrow">Highlighted for you</p>
+    <h2 className="fw-bold">Featured Medicines</h2>
+    <p className="section-subtitle">
+      Discover new arrivals and best sellers tailored to your needs.
+    </p>
+  </div>
+
+  {featuredProducts.length === 0 ? (
+    <div className="featured-card text-center">
+      <div className="empty-icon mb-3">??</div>
+      <h5 className="mb-2">No featured medicines yet</h5>
+      <p className="text-muted mb-4">
+        We are curating top picks for you. Browse our catalog to find what you need in the meantime.
+      </p>
+      <button className="btn btn-primary px-4" onClick={() => navigate("/products")}>
+        View All Medicines
+      </button>
+    </div>
+  ) : (
+    <div className="featured-grid">
+      {featuredProducts.map((product) => (
+        <div key={product._id} className="featured-card product-card text-center">
+          <div className="featured-image-wrap">
+            {product.imageUrl ? (
+              <img src={product.imageUrl} alt={product.name} />
+            ) : (
+              <div className="empty-icon">??</div>
+            )}
+            <span className="badge bg-warning text-dark best-seller-badge">
+              Best seller ? {product.totalSold}
+            </span>
+          </div>
+          <h5 className="mt-3 mb-2">{product.name}</h5>
+          <p className="text-primary fw-bold mb-3">
+            {product.price ? `$${Number(product.price).toFixed(2)}` : '?'}
           </p>
-          <button className="btn btn-primary px-4" onClick={() => navigate("/products")}>
-            View All Medicines
+          <button
+            className="btn btn-outline-primary"
+            onClick={() => navigate(`/products/${product._id}`)}
+            type="button"
+          >
+            View details
           </button>
         </div>
-      </section>
+      ))}
+    </div>
+  )}
+</section>
 
       <Footer />
     </div>

@@ -92,15 +92,16 @@ const Register = () => {
 
     try {
       await axios.post(`${config.API_URL}/api/auth/register`, payload);
-      setSuccess("Registration successful! Please log in to continue.");
-      navigate("/login");
+      // Show Vietnamese success message and navigate to login after short delay
+      setSuccess("Đăng ký thành công, vui lòng đăng nhập!");
+      setError("");
+      setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
       console.error("Register error:", err);
-      setError(
-        err.response?.data?.error ||
-          err.message ||
-          "An error occurred. Please try again."
-      );
+      // Prefer backend message fields (error or message), fallback to generic text
+      const serverMsg = err.response?.data?.error || err.response?.data?.message;
+      setError(serverMsg || err.message || "Đã xảy ra lỗi, vui lòng thử lại.");
+      setSuccess("");
     } finally {
       setLoading(false);
     }

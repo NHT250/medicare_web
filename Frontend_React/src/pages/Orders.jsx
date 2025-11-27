@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { ordersAPI } from '../services/api';
+import { useCart } from '../contexts/CartContext';
+import { ordersAPI, cartAPI } from '../services/api';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import '../styles/Orders.css';
@@ -51,10 +52,13 @@ const normaliseStatusKey = (status) => {
 const Orders = () => {
   const navigate = useNavigate();
   const { isAuthenticated, loading: authLoading, logout } = useAuth();
+  const { replaceCart } = useCart();
   
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState(null);
+  const [reorderLoadingId, setReorderLoadingId] = useState(null);
+  const [invoiceLoadingId, setInvoiceLoadingId] = useState(null);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -94,6 +98,54 @@ const Orders = () => {
 
   const toggleOrderDetails = (orderId) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
+  };
+
+  const handleReorder = async (orderId) => {
+    try {
+      setReorderLoadingId(orderId);
+      const res = await ordersAPI.reorder(orderId);
+      if (res?.success) {
+        // Sync cart from backend
+        try {
+          const cartRes = await cartAPI.getCart();
+          if (cartRes?.items) {
+            replaceCart(cartRes.items);
+          }
+        } catch (syncErr) {
+          console.warn('Failed to sync cart after reorder:', syncErr);
+        }
+        alert(res.message || 'Added items to your cart.');
+      } else {
+        alert(res?.message || 'Could not reorder items.');
+      }
+      navigate('/cart');
+    } catch (error) {
+      console.error('Reorder error:', error);
+      alert('Could not reorder items right now.');
+    } finally {
+      setReorderLoadingId(null);
+    }
+  };
+
+  const handleDownloadInvoice = async (orderId) => {
+    try {
+      setInvoiceLoadingId(orderId);
+      const response = await ordersAPI.downloadInvoice(orderId);
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `invoice-${orderId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Invoice download error:', error);
+      alert('Cannot download invoice right now.');
+    } finally {
+      setInvoiceLoadingId(null);
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -348,13 +400,21 @@ const Orders = () => {
 
                     {/* Action Buttons */}
                     <div className="order-actions mt-4">
-                      <button className="btn btn-outline-primary me-2">
+                      <button
+                        className="btn btn-outline-primary me-2"
+                        onClick={() => handleReorder(order._id || order.orderId)}
+                        disabled={reorderLoadingId === (order._id || order.orderId)}
+                      >
                         <i className="fas fa-redo me-1"></i>
-                        Order Again
+                        {reorderLoadingId === (order._id || order.orderId) ? 'Processing...' : 'Order Again'}
                       </button>
-                      <button className="btn btn-outline-secondary">
+                      <button
+                        className="btn btn-outline-secondary"
+                        onClick={() => handleDownloadInvoice(order._id || order.orderId)}
+                        disabled={invoiceLoadingId === (order._id || order.orderId)}
+                      >
                         <i className="fas fa-download me-1"></i>
-                        Download Invoice
+                        {invoiceLoadingId === (order._id || order.orderId) ? 'Downloading...' : 'Download Invoice'}
                       </button>
                     </div>
                   </div>

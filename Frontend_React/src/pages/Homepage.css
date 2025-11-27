@@ -264,6 +264,13 @@
   background: linear-gradient(180deg, #f9fbff 0%, #ffffff 100%);
 }
 
+.featured-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+  margin-top: 28px;
+}
+
 .featured-card {
   margin: 0 auto;
   max-width: 640px;
@@ -273,6 +280,31 @@
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+}
+
+.featured-image-wrap {
+  position: relative;
+  width: 100%;
+  padding: 8px;
+  border-radius: 14px;
+  background: #f8fafc;
+  min-height: 140px;
+  display: grid;
+  place-items: center;
+}
+
+.featured-image-wrap img {
+  max-height: 140px;
+  object-fit: contain;
+  width: 100%;
+  border-radius: 10px;
+}
+
+.best-seller-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-weight: 700;
 }
 
 .empty-icon {

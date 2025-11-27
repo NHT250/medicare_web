@@ -118,6 +118,19 @@ export const CartProvider = ({ children }) => {
     localStorage.removeItem(config.STORAGE_KEYS.CART);
   };
 
+  const replaceCart = (items) => {
+    if (!Array.isArray(items)) {
+      return;
+    }
+    const normalized = items.map((item) => ({
+      ...item,
+      id: item.productId || item.id || item.product_id,
+      quantity: Number(item.quantity || 1),
+      price: Number(item.price || item.subtotal || 0),
+    }));
+    setCartItems(normalized);
+  };
+
   const getItemQuantity = (productId) => {
     const item = cartItems.find((item) => item.id === productId);
     return item ? item.quantity : 0;
@@ -131,6 +144,7 @@ export const CartProvider = ({ children }) => {
     removeFromCart,
     updateQuantity,
     clearCart,
+    replaceCart,
     getItemQuantity,
   };
 
