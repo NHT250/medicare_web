@@ -88,7 +88,7 @@ const Dashboard = () => {
         setError(null);
       } catch (err) {
         console.error("Failed to load dashboard data", err);
-        setError("Failed to load dashboard data.");
+        setError("Khong the tai du lieu tong quan.");
       } finally {
         setLoading(false);
       }
@@ -102,42 +102,42 @@ const Dashboard = () => {
   if (loading) {
     return (
       <Container fluid className="py-3">
-        <h2 className="mb-3">Admin Dashboard</h2>
-        <p>Loading...</p>
+        <h2 className="mb-3">Tong quan he thong</h2>
+        <p>Dang tai...</p>
       </Container>
     );
   }
 
   return (
     <Container fluid className="py-3">
-      <h2 className="mb-3">Admin Dashboard</h2>
+      <h2 className="mb-3">Tong quan he thong</h2>
       {error && <div className="alert alert-warning">{error}</div>}
       <Row>
-        <SummaryCard label="Total Revenue" value={formatCurrency(summary.totalRevenue)} />
-        <SummaryCard label="Orders" value={summary.totalOrders || 0} />
-        <SummaryCard label="Users" value={summary.totalUsers || 0} />
-        <SummaryCard label="Active Products" value={summary.activeProducts || 0} />
+        <SummaryCard label="Tong doanh thu" value={formatCurrency(summary.totalRevenue)} />
+        <SummaryCard label="Don hang" value={summary.totalOrders || 0} />
+        <SummaryCard label="Nguoi dung" value={summary.totalUsers || 0} />
+        <SummaryCard label="San pham dang ban" value={summary.activeProducts || 0} />
       </Row>
 
       <Row className="mt-3">
         <Col lg={8} className="mb-3">
           <Card className="shadow-sm">
-            <Card.Header>Recent Orders</Card.Header>
+            <Card.Header>Don hang gan day</Card.Header>
             <Card.Body className="p-0">
               <Table striped hover responsive className="mb-0">
                 <thead>
                   <tr>
-                    <th>Order</th>
-                    <th>Customer</th>
-                    <th>Status</th>
-                    <th>Total</th>
+                    <th>Ma don</th>
+                    <th>Khach hang</th>
+                    <th>Trang thai</th>
+                    <th>Tong</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentOrders.length === 0 && (
                     <tr>
                       <td colSpan={4} className="text-center py-3 text-muted">
-                        No recent orders
+                        Chua co don hang gan day
                       </td>
                     </tr>
                   )}
@@ -159,16 +159,16 @@ const Dashboard = () => {
         </Col>
         <Col lg={4} className="mb-3">
           <Card className="shadow-sm h-100">
-            <Card.Header>Recent Users</Card.Header>
+            <Card.Header>Nguoi dung gan day</Card.Header>
             <Card.Body>
-              {recentUsers.length === 0 && <div className="text-muted">No recent users</div>}
+              {recentUsers.length === 0 && <div className="text-muted">Chua co nguoi dung moi</div>}
               {recentUsers.map((user, idx) => (
                 <div key={user.id || user.email || idx} className="mb-3">
                   <div className="fw-semibold">{user.name}</div>
                   <div className="text-muted small">{user.email}</div>
                   {user.totalOrders !== undefined && (
                     <div className="small">
-                      Orders: {user.totalOrders} | Spent: {formatCurrency(user.totalSpent || 0)}
+                      Don: {user.totalOrders} | Da chi: {formatCurrency(user.totalSpent || 0)}
                     </div>
                   )}
                 </div>
@@ -181,14 +181,14 @@ const Dashboard = () => {
       <Row className="mt-3">
         <Col md={6} className="mb-3">
           <Card className="shadow-sm h-100">
-            <Card.Header>Revenue (last range)</Card.Header>
+            <Card.Header>Doanh thu (gan nhat)</Card.Header>
             <Card.Body>
-              {revenueSeries.length === 0 && <div className="text-muted">No revenue data</div>}
+              {revenueSeries.length === 0 && <div className="text-muted">Chua co du lieu doanh thu</div>}
               {revenueSeries.map((row) => (
                 <div key={row.date} className="d-flex justify-content-between border-bottom py-1">
                   <span>{row.date}</span>
                   <span>
-                    {formatCurrency(row.revenue)} ({row.orders} orders)
+                    {formatCurrency(row.revenue)} ({row.orders} don)
                   </span>
                 </div>
               ))}
@@ -197,9 +197,9 @@ const Dashboard = () => {
         </Col>
         <Col md={6} className="mb-3">
           <Card className="shadow-sm h-100">
-            <Card.Header>Order Status</Card.Header>
+            <Card.Header>Trang thai don hang</Card.Header>
             <Card.Body>
-              {Object.keys(statusSummary).length === 0 && <div className="text-muted">No status data</div>}
+              {Object.keys(statusSummary).length === 0 && <div className="text-muted">Chua co du lieu</div>}
               {Object.entries(statusSummary).map(([status, count]) => (
                 <div key={status} className="d-flex justify-content-between border-bottom py-1">
                   <span>{status}</span>
@@ -214,9 +214,9 @@ const Dashboard = () => {
       <Row className="mt-3">
         <Col md={6} className="mb-3">
           <Card className="shadow-sm h-100">
-            <Card.Header>Category Stats</Card.Header>
+            <Card.Header>Thong ke danh muc</Card.Header>
             <Card.Body>
-              {categoryStats.length === 0 && <div className="text-muted">No category data</div>}
+              {categoryStats.length === 0 && <div className="text-muted">Chua co du lieu</div>}
               {categoryStats.map((row, idx) => (
                 <div
                   key={row.categoryId || row.categoryName || idx}
@@ -224,7 +224,7 @@ const Dashboard = () => {
                 >
                   <span>{row.categoryName}</span>
                   <span>
-                    {formatCurrency(row.totalRevenue)} / Qty {row.totalQuantity}
+                    {formatCurrency(row.totalRevenue)} / SL {row.totalQuantity}
                   </span>
                 </div>
               ))}
@@ -233,14 +233,14 @@ const Dashboard = () => {
         </Col>
         <Col md={6} className="mb-3">
           <Card className="shadow-sm h-100">
-            <Card.Header>Payment Methods</Card.Header>
+            <Card.Header>Phuong thuc thanh toan</Card.Header>
             <Card.Body>
-              {paymentStats.length === 0 && <div className="text-muted">No payment data</div>}
+              {paymentStats.length === 0 && <div className="text-muted">Chua co du lieu</div>}
               {paymentStats.map((row, idx) => (
                 <div key={row.method || idx} className="d-flex justify-content-between border-bottom py-1">
                   <span>{row.method}</span>
                   <span>
-                    {row.orders} orders – {formatCurrency(row.revenue)}
+                    {row.orders} don — {formatCurrency(row.revenue)}
                   </span>
                 </div>
               ))}

@@ -14,8 +14,7 @@ const ERROR_MESSAGES = {
   },
   PRODUCT_NOT_FOUND: {
     title: 'Sản phẩm không tồn tại',
-    description:
-      'Một số sản phẩm trong đơn hàng không còn hiện diện. Vui lòng quay lại giỏ hàng.',
+    description: 'Một số sản phẩm trong đơn hàng không còn hiển thị. Vui lòng quay lại giỏ hàng.',
     suggestion: 'Quay lại giỏ hàng để cập nhật',
   },
   VALIDATION_ERROR: {
@@ -30,7 +29,7 @@ const ERROR_MESSAGES = {
   },
   USER_CANCELLED: {
     title: 'Thanh toán bị hủy',
-    description: 'Bạn đã hủy quá trình thanh toán. Đơn hàng không được tạo.',
+    description: 'Bạn đã hủy quá trình thanh toán. Đơn hàng chưa được tạo.',
     suggestion: 'Thử lại',
   },
   PAYMENT_FAILED: {
@@ -49,7 +48,7 @@ const getMethodDisplay = (methodCode) => {
   const methods = {
     cod: 'Thanh toán khi nhận hàng',
     vnpay: 'VNPAY',
-    momo: 'MoMo Wallet',
+    momo: 'MoMo',
   };
   return methods[methodCode?.toLowerCase()] || 'N/A';
 };
@@ -91,10 +90,7 @@ const PaymentFail = () => {
           <div className="card-body py-5">
             <div className="text-center">
               <div className="mb-4">
-                <i
-                  className="fas fa-times-circle text-danger"
-                  style={{ fontSize: '64px' }}
-                />
+                <i className="fas fa-times-circle text-danger" style={{ fontSize: '64px' }} />
               </div>
 
               <h5 className="mb-3">{errorInfo.title}</h5>
@@ -143,19 +139,11 @@ const PaymentFail = () => {
                   <i className="fas fa-redo me-2" />
                   {reason === 'STOCK_ERROR' ? 'Quay lại giỏ hàng' : 'Thử lại'}
                 </button>
-                <button
-                  className="btn btn-outline-primary btn-lg"
-                  onClick={() => navigate('/cart')}
-                  type="button"
-                >
+                <button className="btn btn-outline-primary btn-lg" onClick={() => navigate('/cart')} type="button">
                   <i className="fas fa-shopping-cart me-2" />
                   Quay lại giỏ hàng
                 </button>
-                <button
-                  className="btn btn-link btn-lg text-secondary"
-                  onClick={() => navigate('/')}
-                  type="button"
-                >
+                <button className="btn btn-link btn-lg text-secondary" onClick={() => navigate('/')} type="button">
                   <i className="fas fa-home me-2" />
                   Quay về trang chủ
                 </button>

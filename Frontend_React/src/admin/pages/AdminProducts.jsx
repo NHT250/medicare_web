@@ -37,7 +37,7 @@ const AdminProducts = () => {
     } catch (err) {
       console.error("Failed to load products", err);
       setError(
-        err?.response?.data?.error || "Unable to load products. Please try again."
+        err?.response?.data?.error || "Không thể tải sản phẩm. Vui lòng thử lại."
       );
     } finally {
       setLoading(false);
@@ -67,7 +67,7 @@ const AdminProducts = () => {
   };
 
   const handleDelete = async (productId) => {
-    if (!window.confirm("Delete this product?")) {
+    if (!window.confirm("Bạn chắc chắn muốn xóa sản phẩm này?")) {
       return;
     }
     try {
@@ -75,7 +75,7 @@ const AdminProducts = () => {
       fetchProducts(pagination.page);
     } catch (err) {
       console.error("Failed to delete product", err);
-      alert(err?.response?.data?.error || "Unable to delete product");
+      alert(err?.response?.data?.error || "Không thể xóa sản phẩm");
     }
   };
 
@@ -113,12 +113,12 @@ const AdminProducts = () => {
             </td>
             <td>
               <span className={`badge ${product.stock > 0 ? "bg-success" : "bg-danger"}`}>
-                {product.stock} in stock
+                {product.stock} sản phẩm
               </span>
             </td>
             <td>
               <span className={`badge ${product.is_active ? "bg-primary" : "bg-secondary"}`}>
-                {product.is_active ? "Active" : "Hidden"}
+                {product.is_active ? "Đang bán" : "Ẩn"}
               </span>
             </td>
             <td>{product.updatedAt ? new Date(product.updatedAt).toLocaleString() : "-"}</td>
@@ -127,13 +127,13 @@ const AdminProducts = () => {
                 className="btn btn-sm btn-outline-primary me-2"
                 onClick={() => navigate(`/admin/products/${product._id}/edit`)}
               >
-                <i className="fas fa-edit me-1" /> Edit
+                <i className="fas fa-edit me-1" /> Sửa
               </button>
               <button
                 className="btn btn-sm btn-outline-danger"
                 onClick={() => handleDelete(product._id)}
               >
-                <i className="fas fa-trash me-1" /> Delete
+                <i className="fas fa-trash me-1" /> Xóa
               </button>
             </td>
           </tr>
@@ -146,11 +146,11 @@ const AdminProducts = () => {
     <div className="container-fluid py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="h4 mb-1">Products</h2>
-          <p className="text-muted mb-0">Manage the catalog of medications and medical supplies.</p>
+          <h2 className="h4 mb-1">Sản phẩm</h2>
+          <p className="text-muted mb-0">Quản lý danh mục thuốc và vật tư y tế.</p>
         </div>
         <Link to="/admin/products/new" className="btn btn-primary">
-          <i className="fas fa-plus me-2" /> Add Product
+          <i className="fas fa-plus me-2" /> Thêm sản phẩm
         </Link>
       </div>
 
@@ -158,23 +158,23 @@ const AdminProducts = () => {
         <div className="card-body">
           <form className="row g-3 align-items-end" onSubmit={handleSearchSubmit}>
             <div className="col-md-4">
-              <label className="form-label">Search</label>
+              <label className="form-label">Tìm kiếm</label>
               <input
                 type="text"
                 className="form-control"
-                placeholder="Product name or slug"
+                placeholder="Tên sản phẩm hoặc slug"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
             <div className="col-md-4">
-              <label className="form-label">Category</label>
+              <label className="form-label">Danh mục</label>
               <select
                 className="form-select"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               >
-                <option value="all">All</option>
+                <option value="all">Tất cả</option>
                 {categories.map((cat) => (
                   <option key={cat._id} value={cat.slug}>
                     {cat.name}
@@ -184,7 +184,7 @@ const AdminProducts = () => {
             </div>
             <div className="col-md-4">
               <button type="submit" className="btn btn-outline-primary me-2">
-                <i className="fas fa-search me-1" /> Search
+                <i className="fas fa-search me-1" /> Tìm kiếm
               </button>
               <button
                 type="button"
@@ -195,7 +195,7 @@ const AdminProducts = () => {
                   fetchProducts(1);
                 }}
               >
-                Reset
+                Đặt lại
               </button>
             </div>
           </form>
@@ -209,13 +209,13 @@ const AdminProducts = () => {
             <table className="table table-hover table-striped mb-0">
               <thead className="table-light">
                 <tr>
-                  <th>Name</th>
-                  <th>Category</th>
-                  <th>Price</th>
-                  <th>Stock</th>
-                  <th>Status</th>
-                  <th>Updated</th>
-                  <th className="text-end">Actions</th>
+                  <th>Tên sản phẩm</th>
+                  <th>Danh mục</th>
+                  <th>Giá</th>
+                  <th>Tồn kho</th>
+                  <th>Trạng thái</th>
+                  <th>Cập nhật</th>
+                  <th className="text-end">Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -230,7 +230,7 @@ const AdminProducts = () => {
                 ) : (
                   <tr>
                     <td colSpan="7" className="text-center py-4 text-muted">
-                      No products found.
+                      Không có sản phẩm.
                     </td>
                   </tr>
                 )}
@@ -240,7 +240,7 @@ const AdminProducts = () => {
         </div>
         <div className="card-footer d-flex justify-content-between align-items-center">
           <small className="text-muted">
-            Total {pagination.total} products — Page {pagination.page}/{pagination.pages}
+            Tổng {pagination.total} sản phẩm — Trang {pagination.page}/{pagination.pages}
           </small>
           <div className="btn-group">
             <button

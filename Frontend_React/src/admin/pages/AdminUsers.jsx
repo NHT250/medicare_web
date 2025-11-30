@@ -35,7 +35,7 @@ const AdminUsers = () => {
       });
     } catch (err) {
       console.error("Failed to load users", err);
-      setError(err?.response?.data?.error || "Unable to load users");
+      setError(err?.response?.data?.error || "Không thể tải danh sách người dùng");
     } finally {
       setLoading(false);
     }
@@ -53,7 +53,7 @@ const AdminUsers = () => {
 
   const handleToggleBan = async (user) => {
     if (user.role === "admin" && !user.is_banned) {
-      if (!window.confirm("Are you sure you want to suspend this administrator account?")) {
+      if (!window.confirm("Bạn chắc chắn muốn khóa tài khoản quản trị này?")) {
         return;
       }
     }
@@ -62,7 +62,7 @@ const AdminUsers = () => {
       fetchUsers(pagination.page);
     } catch (err) {
       console.error("Failed to update ban state", err);
-      alert(err?.response?.data?.error || "Unable to update status");
+      alert(err?.response?.data?.error || "Không thể cập nhật trạng thái");
     }
   };
 
@@ -71,17 +71,17 @@ const AdminUsers = () => {
       users.map((user) => (
         <tr key={user._id}>
           <td>
-            <div className="fw-semibold">{user.name || "(Not updated)"}</div>
+            <div className="fw-semibold">{user.name || "Chưa cập nhật"}</div>
             <small className="text-muted">{user.email}</small>
           </td>
           <td>
             <span className={`badge ${user.role === "admin" ? "bg-danger" : "bg-primary"}`}>
-              {user.role}
+              {user.role === "admin" ? "Quản trị viên" : "Khách hàng"}
             </span>
           </td>
           <td>
             <span className={`badge ${user.is_banned ? "bg-danger" : "bg-success"}`}>
-              {user.is_banned ? "Banned" : "Active"}
+              {user.is_banned ? "Đã chặn" : "Hoạt động"}
             </span>
           </td>
           <td>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"}</td>
@@ -90,14 +90,14 @@ const AdminUsers = () => {
               className="btn btn-sm btn-outline-primary me-2"
               onClick={() => navigate(`/admin/users/${user._id}`)}
             >
-              <i className="fas fa-user-edit me-1" /> Manage
+              <i className="fas fa-user-edit me-1" /> Quản lý
             </button>
             <button
               className={`btn btn-sm ${user.is_banned ? "btn-outline-success" : "btn-outline-danger"}`}
               onClick={() => handleToggleBan(user)}
             >
               <i className={`fas ${user.is_banned ? "fa-unlock" : "fa-ban"} me-1`} />
-              {user.is_banned ? "Unban" : "Ban"}
+              {user.is_banned ? "Bỏ chặn" : "Chặn"}
             </button>
           </td>
         </tr>
@@ -109,8 +109,8 @@ const AdminUsers = () => {
     <div className="container-fluid py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="h4 mb-1">Users</h2>
-          <p className="text-muted mb-0">Track roles, status, and order history.</p>
+          <h2 className="h4 mb-1">Người dùng</h2>
+          <p className="text-muted mb-0">Theo dõi vai trò, trạng thái và lịch sử đơn hàng.</p>
         </div>
       </div>
 
@@ -118,34 +118,34 @@ const AdminUsers = () => {
         <div className="card-body">
           <form className="row g-3 align-items-end" onSubmit={handleSearchSubmit}>
             <div className="col-md-4">
-              <label className="form-label">Search</label>
+              <label className="form-label">Tìm kiếm</label>
               <input
                 type="text"
                 className="form-control"
-                placeholder="Name, email, or phone number"
+                placeholder="Tên, email hoặc số điện thoại"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
             <div className="col-md-4">
-              <label className="form-label">Role</label>
+              <label className="form-label">Vai trò</label>
               <select className="form-select" value={role} onChange={(e) => setRole(e.target.value)}>
-                <option value="all">All</option>
-                <option value="customer">Customer</option>
-                <option value="admin">Admin</option>
+                <option value="all">Tất cả</option>
+                <option value="customer">Khách hàng</option>
+                <option value="admin">Quản trị viên</option>
               </select>
             </div>
             <div className="col-md-4">
-              <label className="form-label">Status</label>
+              <label className="form-label">Trạng thái</label>
               <select className="form-select" value={banned} onChange={(e) => setBanned(e.target.value)}>
-                <option value="all">All</option>
-                <option value="active">Active</option>
-                <option value="banned">Banned</option>
+                <option value="all">Tất cả</option>
+                <option value="active">Hoạt động</option>
+                <option value="banned">Đã chặn</option>
               </select>
             </div>
             <div className="col-12">
               <button type="submit" className="btn btn-outline-primary me-2">
-                <i className="fas fa-search me-1" /> Search
+                <i className="fas fa-search me-1" /> Tìm kiếm
               </button>
               <button
                 type="button"
@@ -157,7 +157,7 @@ const AdminUsers = () => {
                   fetchUsers(1);
                 }}
               >
-                Reset
+                Đặt lại
               </button>
             </div>
           </form>
@@ -171,11 +171,11 @@ const AdminUsers = () => {
             <table className="table table-hover table-striped mb-0">
               <thead className="table-light">
                 <tr>
-                  <th>User</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Created</th>
-                  <th className="text-end">Actions</th>
+                  <th>Người dùng</th>
+                  <th>Vai trò</th>
+                  <th>Trạng thái</th>
+                  <th>Ngày tạo</th>
+                  <th className="text-end">Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -190,7 +190,7 @@ const AdminUsers = () => {
                 ) : (
                   <tr>
                     <td colSpan="5" className="text-center py-4 text-muted">
-                      No matching users.
+                      Không có người dùng phù hợp.
                     </td>
                   </tr>
                 )}
@@ -200,7 +200,7 @@ const AdminUsers = () => {
         </div>
         <div className="card-footer d-flex justify-content-between align-items-center">
           <small className="text-muted">
-            Total {pagination.total} users — Page {pagination.page}/{pagination.pages}
+            Tổng {pagination.total} người dùng — Trang {pagination.page}/{pagination.pages}
           </small>
           <div className="btn-group">
             <button

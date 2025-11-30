@@ -16,8 +16,8 @@ const AdminLayout = () => {
     <div className="d-flex" style={{ minHeight: "100vh" }}>
       <aside className="bg-dark text-white p-4" style={{ minWidth: "240px" }}>
         <div className="mb-4">
-          <h2 className="h4 mb-0">Medicare Admin</h2>
-          <p className="text-muted small mb-0">Welcome, {user?.name || user?.email}</p>
+          <h2 className="h4 mb-0">Quản trị Medicare</h2>
+          <p className="text-muted small mb-0">Xin chào, {user?.name || user?.email}</p>
         </div>
         <nav className="nav flex-column gap-2">
           <NavLink
@@ -27,7 +27,7 @@ const AdminLayout = () => {
               `nav-link text-white ${isActive ? "fw-bold text-warning" : ""}`
             }
           >
-            <i className="fas fa-chart-line me-2" /> Dashboard
+            <i className="fas fa-chart-line me-2" /> Bảng điều khiển
           </NavLink>
           <NavLink
             to="/admin/products"
@@ -35,7 +35,7 @@ const AdminLayout = () => {
               `nav-link text-white ${isActive ? "fw-bold text-warning" : ""}`
             }
           >
-            <i className="fas fa-pills me-2" /> Products
+            <i className="fas fa-pills me-2" /> Sản phẩm
           </NavLink>
           <NavLink
             to="/admin/orders"
@@ -43,7 +43,7 @@ const AdminLayout = () => {
               `nav-link text-white ${isActive ? "fw-bold text-warning" : ""}`
             }
           >
-            <i className="fas fa-shopping-bag me-2" /> Orders
+            <i className="fas fa-shopping-bag me-2" /> Đơn hàng
           </NavLink>
           <NavLink
             to="/admin/users"
@@ -51,22 +51,22 @@ const AdminLayout = () => {
               `nav-link text-white ${isActive ? "fw-bold text-warning" : ""}`
             }
           >
-            <i className="fas fa-users me-2" /> Users
+            <i className="fas fa-users me-2" /> Người dùng
           </NavLink>
         </nav>
       </aside>
       <main className="flex-grow-1 bg-light">
         <header className="bg-white shadow-sm p-4 d-flex justify-content-between align-items-center">
           <div>
-            <h1 className="h4 mb-0">Admin Panel</h1>
-            <p className="text-muted mb-0">Manage products and users</p>
+            <h1 className="h4 mb-0">Bảng quản trị</h1>
+            <p className="text-muted mb-0">Quản lý sản phẩm và người dùng</p>
           </div>
           <div className="d-flex align-items-center gap-2">
             <button className="btn btn-outline-secondary" onClick={() => navigate("/")}>
-              <i className="fas fa-store me-2" /> Back to Store
+              <i className="fas fa-store me-2" /> Về trang bán hàng
             </button>
             <button type="button" className="btn btn-primary" onClick={handleLogout}>
-              <i className="fas fa-sign-out-alt me-2" /> Logout
+              <i className="fas fa-sign-out-alt me-2" /> Đăng xuất
             </button>
           </div>
         </header>

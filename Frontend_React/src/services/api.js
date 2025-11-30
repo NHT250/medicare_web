@@ -131,7 +131,7 @@ export const productsAPI = {
     } catch (error) {
       console.warn('Product details API unavailable, using mock product.');
       const product = mockProducts.find((item) => item._id === id) || mockProducts[0];
-      return { product };
+      return product;
     }
   },
 
@@ -150,6 +150,16 @@ export const productsAPI = {
       console.warn('Featured products API unavailable, returning empty list.');
       return { success: false, data: [] };
     }
+  },
+
+  getReviews: async (id) => {
+    const response = await api.get(`/api/products/${id}/reviews`);
+    return response.data;
+  },
+
+  createReview: async (id, payload) => {
+    const response = await api.post(`/api/products/${id}/reviews`, payload);
+    return response.data;
   }
 };
 
@@ -379,5 +389,4 @@ export const chatAPI = {
     }
   }
 };
-
 export default api;

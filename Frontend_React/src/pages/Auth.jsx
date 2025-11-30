@@ -28,9 +28,6 @@ const Auth = () => {
   // reCAPTCHA token for login
   const [loginRecaptchaToken, setLoginRecaptchaToken] = useState(null);
   
-  // reCAPTCHA token for register
-  const [registerRecaptchaToken, setRegisterRecaptchaToken] = useState(null);
-
   // Register form state
   const [registerForm, setRegisterForm] = useState({
     name: "",
@@ -39,7 +36,6 @@ const Auth = () => {
     password: "",
     confirmPassword: "",
     agreeTerms: false,
-    recaptcha_token: "",
   });
 
   // Redirect if already logged in
@@ -60,7 +56,7 @@ const Auth = () => {
 
     // Validate form
     if (!loginForm.email || !loginForm.password) {
-      setError("Vui lòng điền đầy đủ thông tin");
+      setError("Vui lòng đi�n đầy đủ thông tin");
       return;
     }
 
@@ -76,10 +72,16 @@ const Auth = () => {
       return;
     }
 
+    // Validate reCAPTCHA
+    if (!loginRecaptchaToken) {
+      setError('Vui lòng xác nhận "I\'m not a robot".');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      console.log("🔐 Login attempt with:", { email: loginForm.email });
+      console.log("� Login attempt with:", { email: loginForm.email });
       const result = await login({
         ...loginForm,
         recaptcha_token: loginRecaptchaToken,
@@ -89,20 +91,20 @@ const Auth = () => {
 
       if (result.success) {
         console.log("✅ Login successful, redirecting...");
-        alert("Đăng nhập thành công! Đang chuyển hướng...");
+        alert("�ăng nhập thành công! �ang chuyển hướng...");
         const destination =
           result.data.role === "admin"
             ? "/admin"
             : location.state?.from || "/";
         navigate(destination);
       } else {
-        console.error("❌ Login failed:", result.error);
+        console.error("� Login failed:", result.error);
         setError(result.error);
       }
     } catch (err) {
       console.error("Login error details:", err);
       if (err.code === "ECONNABORTED" || err.message === "Timeout") {
-        setError("Kết nối hết thời gian chờ. Backend có đang chạy tại http://localhost:5000 không?");
+        setError("Kết nối hết th�i gian ch�. Backend có đang chạy tại http://localhost:5000 không?");
       } else if (err.response?.status === 401) {
         setError("Email hoặc mật khẩu không đúng");
       } else if (err.response?.status === 400) {
@@ -110,7 +112,7 @@ const Auth = () => {
       } else if (!err.response) {
         setError("Không thể kết nối đến server. Vui lòng kiểm tra kết nối internet hoặc trạng thái backend.");
       } else {
-        setError(err.response?.data?.error || "Đã xảy ra lỗi. Vui lòng thử lại.");
+        setError(err.response?.data?.error || "�ã xảy ra lỗi. Vui lòng thử lại.");
       }
     } finally {
       setLoading(false);
@@ -131,7 +133,7 @@ const Auth = () => {
       !registerForm.password ||
       !registerForm.confirmPassword
     ) {
-      setError("Vui lòng điền đầy đủ thông tin");
+      setError("Vui lòng đi�n đầy đủ thông tin");
       return;
     }
 
@@ -150,7 +152,7 @@ const Auth = () => {
     // Validate password
     if (!validatePassword(registerForm.password)) {
       setError(
-        "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số"
+        "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thư�ng và số"
       );
       return;
     }
@@ -163,13 +165,7 @@ const Auth = () => {
 
     // Check terms agreement
     if (!registerForm.agreeTerms) {
-      setError("Vui lòng đồng ý với Điều khoản & Điều kiện");
-      return;
-    }
-
-    // Validate reCAPTCHA
-    if (!registerRecaptchaToken) {
-      setError('Vui lòng xác nhận "I\'m not a robot".');
+      setError("Vui lòng đồng ý với �i�u khoản & �i�u kiện");
       return;
     }
 
@@ -178,11 +174,10 @@ const Auth = () => {
     try {
       const result = await register({
         ...registerForm,
-        recaptcha_token: registerRecaptchaToken,
       });
 
       if (result.success) {
-        alert("Đăng ký thành công! Vui lòng đăng nhập.");
+        alert("�ăng ký thành công! Vui lòng đăng nhập.");
         navigate("/login");
         setRegisterForm({
           name: "",
@@ -191,23 +186,21 @@ const Auth = () => {
           password: "",
           confirmPassword: "",
           agreeTerms: false,
-          recaptcha_token: "",
         });
-        setRegisterRecaptchaToken(null); // Reset captcha token
-        setSuccess("Đăng ký thành công! Bạn có thể đăng nhập ngay bây giờ.");
+        setSuccess("Registration successful! You can now sign in.");
       } else {
         setError(result.error);
       }
     } catch (err) {
       console.error("Register error details:", err);
       if (err.code === "ECONNABORTED" || err.message === "Timeout") {
-        setError("Kết nối hết thời gian chờ. Backend có đang chạy tại http://localhost:5000 không?");
+        setError("Kết nối hết th�i gian ch�. Backend có đang chạy tại http://localhost:5000 không?");
       } else if (err.response?.status === 400) {
         setError(err.response?.data?.error || "Email đã tồn tại hoặc dữ liệu không hợp lệ");
       } else if (!err.response) {
         setError("Không thể kết nối đến server. Vui lòng kiểm tra kết nối internet hoặc trạng thái backend.");
       } else {
-        setError(err.response?.data?.error || "Đã xảy ra lỗi. Vui lòng thử lại.");
+        setError(err.response?.data?.error || "�ã xảy ra lỗi. Vui lòng thử lại.");
       }
     } finally {
       setLoading(false);
@@ -244,7 +237,7 @@ const Auth = () => {
           </div>
           <div className="header-actions">
             <button className="back-to-home" onClick={() => navigate("/")}>
-              <i className="fas fa-home"></i> Về Trang Chủ
+              <i className="fas fa-home"></i> V� Trang Chủ
             </button>
           </div>
         </div>
@@ -267,7 +260,7 @@ const Auth = () => {
                     setLoginRecaptchaToken(null); // Reset captcha when switching tabs
                   }}
                 >
-                  Đăng Nhập
+                  �ăng Nhập
                 </button>
                 <button
                   className={`tab ${activeTab === "register" ? "active" : ""}`}
@@ -275,10 +268,9 @@ const Auth = () => {
                     setActiveTab("register");
                     setError("");
                     setSuccess("");
-                    setRegisterRecaptchaToken(null); // Reset captcha when switching tabs
                   }}
                 >
-                  Đăng Ký
+                  �ăng Ký
                 </button>
               </div>
 
@@ -300,12 +292,12 @@ const Auth = () => {
                 <div className="form-section">
                   <h2 className="welcome-title">Chào Mừng Trở Lại!</h2>
                   <p className="welcome-subtitle">
-                    Đăng nhập vào tài khoản Medicare của bạn
+                    �ăng nhập vào tài khoản Medicare của bạn
                   </p>
 
                   <form className="auth-form" onSubmit={handleLoginSubmit}>
                     <div className="form-group">
-                      <label htmlFor="loginEmail">Địa Chỉ Email</label>
+                      <label htmlFor="loginEmail">�ịa Chỉ Email</label>
                       <div className="input-container">
                         <input
                           type="email"
@@ -382,7 +374,7 @@ const Auth = () => {
                       className="submit-btn"
                       disabled={loading}
                     >
-                      {loading ? "Đang đăng nhập..." : "Đăng Nhập"}
+                      {loading ? "�ang đăng nhập..." : "�ăng Nhập"}
                     </button>
                   </form>
 
@@ -395,7 +387,7 @@ const Auth = () => {
                         navigate("/register");
                       }}
                     >
-                      Đăng ký tại đây
+                      �ăng ký tại đây
                     </a>
                   </p>
                 </div>
@@ -406,12 +398,12 @@ const Auth = () => {
                 <div className="form-section">
                   <h2 className="welcome-title">Tạo Tài Khoản!</h2>
                   <p className="welcome-subtitle">
-                    Tham gia Medicare để chăm sóc sức khỏe tốt hơn
+                    Tham gia Medicare để chăm sóc sức kh�e tốt hơn
                   </p>
 
                   <form className="auth-form" onSubmit={handleRegisterSubmit}>
                     <div className="form-group">
-                      <label htmlFor="registerName">Họ và Tên</label>
+                      <label htmlFor="registerName">H� và Tên</label>
                       <div className="input-container">
                         <input
                           type="text"
@@ -423,7 +415,7 @@ const Auth = () => {
                               name: e.target.value,
                             })
                           }
-                          placeholder="Nhập họ và tên của bạn"
+                          placeholder="Nhập h� và tên của bạn"
                           required
                         />
                         <i className="fas fa-user input-icon"></i>
@@ -431,7 +423,7 @@ const Auth = () => {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="registerEmail">Địa Chỉ Email</label>
+                      <label htmlFor="registerEmail">�ịa Chỉ Email</label>
                       <div className="input-container">
                         <input
                           type="email"
@@ -451,7 +443,7 @@ const Auth = () => {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="registerPhone">Số Điện Thoại</label>
+                      <label htmlFor="registerPhone">Số �iện Thoại</label>
                       <div className="input-container">
                         <input
                           type="tel"
@@ -524,27 +516,10 @@ const Auth = () => {
                           required
                         />
                         <span className="checkmark"></span>Tôi đồng ý với{" "}
-                        <a href="#">Điều khoản & Điều kiện</a>
+                        <a href="#">�i�u khoản & �i�u kiện</a>
                       </label>
                     </div>
 
-                    {/* reCAPTCHA for Register */}
-                    <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
-                      <ReCAPTCHA
-                        sitekey={config.RECAPTCHA_SITE_KEY}
-                        onChange={(token) => {
-                          setRegisterRecaptchaToken(token);
-                          setError(""); // Clear error when captcha is verified
-                        }}
-                        onExpired={() => {
-                          setRegisterRecaptchaToken(null);
-                        }}
-                        onError={() => {
-                          setRegisterRecaptchaToken(null);
-                          setError("Lỗi xác thực Captcha. Vui lòng thử lại.");
-                        }}
-                      />
-                    </div>
 
                     {error && (
                       <p className="text-danger text-center small mb-2">{error}</p>
@@ -555,14 +530,14 @@ const Auth = () => {
                       className="submit-btn"
                       disabled={loading}
                     >
-                      {loading ? "Đang tạo tài khoản..." : "Đăng Ký"}
+                      {loading ? "�ang tạo tài khoản..." : "�ăng Ký"}
                     </button>
                   </form>
 
                   <p className="switch-form">
-                    Đã có tài khoản?{" "}
+                    �ã có tài khoản?{" "}
                     <a href="#" onClick={() => setActiveTab("login")}>
-                      Đăng nhập tại đây
+                      �ăng nhập tại đây
                     </a>
                   </p>
                 </div>
@@ -580,10 +555,10 @@ const Auth = () => {
                 </div>
               </div>
 
-              <h3 className="promo-title">Sức Khỏe Của Bạn, Ưu Tiên Của Chúng Tôi</h3>
+              <h3 className="promo-title">Sức Kh�e Của Bạn, Ưu Tiên Của Chúng Tôi</h3>
               <p className="promo-description">
                 Tham gia cùng hàng nghìn khách hàng hài lòng tin tưởng Medicare cho
-                nhu cầu dược phẩm của họ. Giao hàng nhanh, thuốc chất lượng,
+                nhu cầu dược phẩm của h�. Giao hàng nhanh, thuốc chất lượng,
                 và chăm sóc chuyên nghiệp.
               </p>
 
@@ -598,7 +573,7 @@ const Auth = () => {
                   <div className="feature-icon">
                     <i className="fas fa-check-circle"></i>
                   </div>
-                  <span>Chất Lượng Được Chứng Nhận</span>
+                  <span>Chất Lượng �ược Chứng Nhận</span>
                 </div>
                 <div className="feature">
                   <div className="feature-icon">
@@ -616,7 +591,7 @@ const Auth = () => {
       <footer className="auth-footer">
         <div className="footer-content">
           <div className="footer-left">
-            <p>&copy; 2025 Medicare. Bảo lưu mọi quyền.</p>
+            <p>&copy; 2025 Medicare. Bảo lưu m�i quy�n.</p>
           </div>
           <div className="footer-right">
             <div className="social-icons">

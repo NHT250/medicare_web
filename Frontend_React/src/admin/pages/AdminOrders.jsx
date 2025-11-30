@@ -4,11 +4,11 @@ import { useNavigate } from "react-router-dom";
 import adminApi from "../api";
 
 const STATUS_OPTIONS = [
-  { value: "all", label: "All statuses" },
-  { value: "Pending", label: "Pending" },
-  { value: "Confirmed", label: "Confirmed" },
-  { value: "Delivered", label: "Delivered" },
-  { value: "Cancelled", label: "Cancelled" },
+  { value: "all", label: "Tất cả trạng thái" },
+  { value: "Pending", label: "Đang chờ" },
+  { value: "Confirmed", label: "Đã xác nhận" },
+  { value: "Delivered", label: "Đã giao" },
+  { value: "Cancelled", label: "Đã hủy" },
 ];
 
 const STATUS_BADGE = {
@@ -101,7 +101,7 @@ const AdminOrders = () => {
         console.error("Failed to load orders", err);
         setError(
           err?.response?.data?.error ||
-            "Unable to load orders. Please try again."
+            "Không thể tải đơn hàng. Vui lòng thử lại."
         );
       } finally {
         setLoading(false);
@@ -154,7 +154,7 @@ const AdminOrders = () => {
             <td className="fw-semibold">{orderNumber}</td>
             <td>
               <div className="d-flex flex-column">
-                <span>{order.customer_name || "Unknown"}</span>
+                <span>{order.customer_name || "Khách lẻ"}</span>
                 <small className="text-muted">{order.email || "-"}</small>
               </div>
             </td>
@@ -170,7 +170,7 @@ const AdminOrders = () => {
                 className="btn btn-sm btn-outline-primary"
                 onClick={() => navigate(`/admin/orders/${order.id}`)}
               >
-                <i className="fas fa-eye me-1" /> View / Edit
+                <i className="fas fa-eye me-1" /> Xem / Sửa
               </button>
             </td>
           </tr>
@@ -183,9 +183,9 @@ const AdminOrders = () => {
     <div className="container-fluid py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="h4 mb-1">Orders</h2>
+          <h2 className="h4 mb-1">Đơn hàng</h2>
           <p className="text-muted mb-0">
-            Manage orders, update statuses, and track internal notes.
+            Quản lý đơn hàng, cập nhật trạng thái và ghi chú nội bộ.
           </p>
         </div>
         <div className="d-flex gap-2">
@@ -196,7 +196,7 @@ const AdminOrders = () => {
             disabled={loading || refreshing}
           >
             <i className={`fas fa-sync-alt me-2 ${refreshing ? "fa-spin" : ""}`} />
-            Refresh
+            Làm mới
           </button>
         </div>
       </div>
@@ -205,17 +205,17 @@ const AdminOrders = () => {
         <div className="card-body">
           <form className="row g-3 align-items-end" onSubmit={handleSearchSubmit}>
             <div className="col-md-4">
-              <label className="form-label">Search</label>
+              <label className="form-label">Tìm kiếm</label>
               <input
                 type="text"
                 className="form-control"
-                placeholder="Order ID, customer name or email"
+                placeholder="Mã đơn, tên hoặc email khách"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
               />
             </div>
             <div className="col-md-3">
-              <label className="form-label">Status</label>
+              <label className="form-label">Trạng thái</label>
               <select
                 className="form-select"
                 value={statusFilter}
@@ -229,7 +229,7 @@ const AdminOrders = () => {
               </select>
             </div>
             <div className="col-md-3">
-              <label className="form-label">Rows per page</label>
+              <label className="form-label">Số dòng / trang</label>
               <select
                 className="form-select"
                 value={limit}
@@ -245,7 +245,7 @@ const AdminOrders = () => {
                 className="btn btn-primary w-100"
                 disabled={loading}
               >
-                <i className="fas fa-search me-2" /> Search
+                <i className="fas fa-search me-2" /> Tìm kiếm
               </button>
             </div>
           </form>
@@ -263,27 +263,27 @@ const AdminOrders = () => {
           {loading ? (
             <div className="py-5 text-center">
               <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">Loading...</span>
+                <span className="visually-hidden">Đang tải...</span>
               </div>
             </div>
           ) : orders.length === 0 ? (
             <div className="py-5 text-center text-muted">
               <i className="fas fa-box-open fa-2x mb-3" />
-              <p className="mb-0">No matching orders.</p>
+              <p className="mb-0">Không có đơn phù hợp.</p>
             </div>
           ) : (
             <div className="table-responsive">
               <table className="table table-hover align-middle mb-0">
                 <thead className="table-light">
                   <tr>
-                    <th scope="col">Order</th>
-                    <th scope="col">Customer</th>
-                    <th scope="col">Total</th>
-                    <th scope="col">Payment</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Created</th>
+                    <th scope="col">Đơn</th>
+                    <th scope="col">Khách hàng</th>
+                    <th scope="col">Tổng tiền</th>
+                    <th scope="col">Thanh toán</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col">Ngày tạo</th>
                     <th scope="col" className="text-end">
-                      Actions
+                      Thao tác
                     </th>
                   </tr>
                 </thead>
@@ -296,7 +296,7 @@ const AdminOrders = () => {
 
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mt-3">
         <div className="text-muted">
-          Showing {rangeStart} - {rangeEnd} of {total} orders
+          Hiển thị {rangeStart} - {rangeEnd} trên {total} đơn
         </div>
         <nav>
           <ul className="pagination mb-0">
@@ -306,7 +306,7 @@ const AdminOrders = () => {
                 className="page-link"
                 onClick={() => handlePageChange(page - 1)}
               >
-                Previous
+                Trước
               </button>
             </li>
             {Array.from({ length: totalPages }, (_, index) => index + 1).map(
@@ -333,7 +333,7 @@ const AdminOrders = () => {
                 className="page-link"
                 onClick={() => handlePageChange(page + 1)}
               >
-                Next
+                Tiếp
               </button>
             </li>
           </ul>
@@ -344,4 +344,3 @@ const AdminOrders = () => {
 };
 
 export default AdminOrders;
-

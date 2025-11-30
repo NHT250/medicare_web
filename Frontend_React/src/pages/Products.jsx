@@ -175,6 +175,8 @@ const Products = () => {
                   const finalPrice = discount ? basePrice * (1 - discount / 100) : basePrice;
                   const primaryImage = product.images?.[0] || "https://via.placeholder.com/300x300";
                   const inStock = product.stock > 0 && product.is_active !== false;
+                  const ratingValue = Number(product.averageRating ?? product.rating ?? 0);
+                  const ratingCount = Number(product.numReviews ?? product.reviews ?? 0);
 
                   return (
                     <div key={product._id} className="col-lg-3 col-md-6">
@@ -194,8 +196,8 @@ const Products = () => {
                           <h6 className="product-name">{product.name}</h6>
                           <p className="product-description">{product.description}</p>
                           <div className="product-rating mb-2">
-                            <div className="stars">{renderStars(product.rating || 0)}</div>
-                            <span className="rating-text">({product.reviews || 0})</span>
+                            <div className="stars">{renderStars(ratingValue)}</div>
+                            <span className="rating-text">({ratingCount})</span>
                           </div>
                           <div className="price-section mb-2">
                             <span className="current-price">${finalPrice.toFixed(2)}</span>
@@ -242,7 +244,6 @@ const Products = () => {
 };
 
 export default Products;
-
 
 
 

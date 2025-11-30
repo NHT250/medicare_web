@@ -6,7 +6,10 @@ __pycache__/
 .Python
 env/
 venv/
+<<<<<<< HEAD
 .venv/
+=======
+>>>>>>> c07e24c066535e759bc3b9d80a057ad1db488ca7
 ENV/
 build/
 develop-eggs/

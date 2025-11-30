@@ -43,7 +43,7 @@ const AdminUserEditor = () => {
         setStats(response.stats || { orders_count: 0, total_spent: 0 });
       } catch (err) {
         console.error("Failed to load user", err);
-        setError(err?.response?.data?.error || "User not found");
+        setError(err?.response?.data?.error || "Khong tim thay nguoi dung");
       } finally {
         setLoading(false);
       }
@@ -181,9 +181,9 @@ const AdminUserEditor = () => {
   if (error || !user) {
     return (
       <div className="alert alert-danger m-4">
-        {error || "User not found"}
+        {error || "Khong tim thay nguoi dung"}
         <button className="btn btn-link" onClick={() => navigate(-1)}>
-          Go Back
+          Quay lai
         </button>
       </div>
     );
@@ -200,20 +200,20 @@ const AdminUserEditor = () => {
                   {user.name?.[0]?.toUpperCase() || "U"}
                 </div>
                 <div className="ms-3">
-                  <h5 className="mb-1">{user.name || "(Not updated)"}</h5>
+                  <h5 className="mb-1">{user.name || "Chua cap nhat"}</h5>
                   <p className="text-muted mb-0">{user.email}</p>
                   <span className={`badge ${user.role === "admin" ? "bg-danger" : "bg-primary"} mt-2`}>
-                    {user.role}
+                    {user.role === "admin" ? "quan tri vien" : "khach hang"}
                   </span>
                 </div>
               </div>
               <div className="d-flex justify-content-between mb-3">
                 <div>
-                  <div className="text-muted">Orders</div>
+                  <div className="text-muted">Don hang</div>
                   <div className="h5 mb-0">{stats.orders_count}</div>
                 </div>
                 <div className="text-end">
-                  <div className="text-muted">Total Spent</div>
+                  <div className="text-muted">Tong chi tieu</div>
                   <div className="h5 mb-0">${stats.total_spent?.toFixed(2)}</div>
                 </div>
               </div>
@@ -222,7 +222,7 @@ const AdminUserEditor = () => {
                 onClick={handleToggleBan}
               >
                 <i className={`fas ${user.is_banned ? "fa-unlock" : "fa-ban"} me-2`} />
-                {user.is_banned ? "Unban" : "Ban Account"}
+                {user.is_banned ? "Bo chan" : "Khoa tai khoan"}
               </button>
             </div>
           </div>
@@ -238,7 +238,7 @@ const AdminUserEditor = () => {
                     className={`nav-link ${activeTab === "personal" ? "active" : ""}`}
                     onClick={() => setActiveTab("personal")}
                   >
-                    Personal Information
+                    Thong tin ca nhan
                   </button>
                 </li>
                 <li className="nav-item">
@@ -247,7 +247,7 @@ const AdminUserEditor = () => {
                     className={`nav-link ${activeTab === "security" ? "active" : ""}`}
                     onClick={() => setActiveTab("security")}
                   >
-                    Security & Permissions
+                    Bao mat & phan quyen
                   </button>
                 </li>
                 <li className="nav-item">
@@ -256,7 +256,7 @@ const AdminUserEditor = () => {
                     className={`nav-link ${activeTab === "orders" ? "active" : ""}`}
                     onClick={() => setActiveTab("orders")}
                   >
-                    Orders
+                    Don hang
                   </button>
                 </li>
               </ul>
@@ -265,7 +265,7 @@ const AdminUserEditor = () => {
               {activeTab === "personal" && (
                 <div className="row g-3">
                   <div className="col-md-6">
-                    <label className="form-label">Name</label>
+                    <label className="form-label">Ho va ten</label>
                     <input
                       type="text"
                       className="form-control"
@@ -283,7 +283,7 @@ const AdminUserEditor = () => {
                     />
                   </div>
                   <div className="col-md-6">
-                    <label className="form-label">Phone Number</label>
+                    <label className="form-label">So dien thoai</label>
                     <input
                       type="text"
                       className="form-control"
@@ -292,7 +292,7 @@ const AdminUserEditor = () => {
                     />
                   </div>
                   <div className="col-md-6">
-                    <label className="form-label">Street</label>
+                    <label className="form-label">Dia chi</label>
                     <input
                       type="text"
                       className="form-control"
@@ -301,7 +301,7 @@ const AdminUserEditor = () => {
                     />
                   </div>
                   <div className="col-md-4">
-                    <label className="form-label">City</label>
+                    <label className="form-label">Thanh pho</label>
                     <input
                       type="text"
                       className="form-control"
@@ -310,7 +310,7 @@ const AdminUserEditor = () => {
                     />
                   </div>
                   <div className="col-md-4">
-                    <label className="form-label">State/Province</label>
+                    <label className="form-label">Tinh/Thanh pho</label>
                     <input
                       type="text"
                       className="form-control"
@@ -319,7 +319,7 @@ const AdminUserEditor = () => {
                     />
                   </div>
                   <div className="col-md-4">
-                    <label className="form-label">Postal Code</label>
+                    <label className="form-label">Ma buu chinh</label>
                     <input
                       type="text"
                       className="form-control"
@@ -328,7 +328,7 @@ const AdminUserEditor = () => {
                     />
                   </div>
                   <div className="col-md-6">
-                    <label className="form-label">Country</label>
+                    <label className="form-label">Quoc gia</label>
                     <input
                       type="text"
                       className="form-control"
@@ -341,24 +341,24 @@ const AdminUserEditor = () => {
               {activeTab === "security" && (
                 <div className="d-flex flex-column gap-4">
                   <div>
-                    <label className="form-label">Role</label>
+                    <label className="form-label">Vai tro</label>
                     <select
                       className="form-select w-auto"
                       value={user.role}
                       onChange={(e) => handleRoleChange(e.target.value)}
                     >
-                      <option value="customer">Customer</option>
-                      <option value="admin">Admin</option>
+                      <option value="customer">Khach hang</option>
+                      <option value="admin">Quan tri vien</option>
                     </select>
                     <div className="form-text text-warning mt-2">
-                      Cannot demote the last administrator or demote yourself.
+                      Khong the ha vai tro quan tri cuoi cung hoac chinh ban.
                     </div>
                   </div>
                   <div>
-                    <label className="form-label">Reset Password</label>
-                    <p className="text-muted">Generate a temporary password to send to the user.</p>
+                    <label className="form-label">Dat lai mat khau</label>
+                    <p className="text-muted">Tao mat khau tam thoi de gui cho nguoi dung.</p>
                     <button className="btn btn-outline-primary" onClick={handleResetPassword}>
-                      <i className="fas fa-key me-2" /> Generate Temporary Password
+                      <i className="fas fa-key me-2" /> Tao mat khau tam thoi
                     </button>
                   </div>
                 </div>
@@ -366,26 +366,26 @@ const AdminUserEditor = () => {
               {activeTab === "orders" && (
                 <div>
                   <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h5 className="mb-0">Order History</h5>
+                    <h5 className="mb-0">Lich su don hang</h5>
                     <span className="badge bg-primary">
-                      Total spent: ${orderTotal.toFixed(2)}
+                      Tong chi: ${orderTotal.toFixed(2)}
                     </span>
                   </div>
                   <div className="table-responsive">
                     <table className="table table-striped">
                       <thead>
                         <tr>
-                          <th>Order ID</th>
-                          <th>Created At</th>
-                          <th>Status</th>
-                          <th className="text-end">Total Amount</th>
+                          <th>Ma don</th>
+                          <th>Thoi gian tao</th>
+                          <th>Trang thai</th>
+                          <th className="text-end">Tong tien</th>
                         </tr>
                       </thead>
                       <tbody>
                         {orders.length === 0 ? (
                           <tr>
                               <td colSpan="4" className="text-center text-muted py-4">
-                                No orders yet.
+                                Chua co don hang.
                             </td>
                           </tr>
                         ) : (
@@ -413,14 +413,14 @@ const AdminUserEditor = () => {
           <div className="card shadow-sm border-0 mt-4 sticky-bottom" style={{ zIndex: 9 }}>
             <div className="card-body d-flex justify-content-between align-items-center">
               <div className="text-muted">
-                {isDirty ? "Unsaved changes" : "All changes saved"}
+                {isDirty ? "Chua luu thay doi" : "Moi thay doi da duoc luu"}
               </div>
               <div className="btn-group">
                 <button className="btn btn-outline-secondary" onClick={() => handleSave({ closeAfter: false })} disabled={saving}>
-                  <i className="fas fa-save me-1" /> Save
+                  <i className="fas fa-save me-1" /> Luu
                 </button>
                 <button className="btn btn-primary" onClick={() => handleSave({ closeAfter: true })} disabled={saving}>
-                  <i className="fas fa-check me-1" /> Save & Close
+                  <i className="fas fa-check me-1" /> Luu & dong
                 </button>
               </div>
             </div>

@@ -30,21 +30,21 @@ export default function ImagePicker({ images = [], setImages }) {
     }
 
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      window.alert("Unsupported image format");
+      window.alert("??nh d?ng ?nh kh?ng h? tr?");
       event.target.value = "";
       return;
     }
 
     const sizeMb = file.size / (1024 * 1024);
     if (sizeMb > MAX_SIZE_MB) {
-      window.alert(`Maximum image size is ${MAX_SIZE_MB}MB`);
+      window.alert(`K?ch th??c ?nh t?i ?a ${MAX_SIZE_MB}MB`);
       event.target.value = "";
       return;
     }
 
     const token = localStorage.getItem(config.STORAGE_KEYS.TOKEN);
     if (!token) {
-      window.alert("Please sign in again to upload images");
+      window.alert("Vui l?ng ??ng nh?p l?i ?? t?i ?nh");
       event.target.value = "";
       return;
     }
@@ -65,12 +65,12 @@ export default function ImagePicker({ images = [], setImages }) {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data?.message || "Upload failed");
+        throw new Error(data?.message || "T?i l?n th?t b?i");
       }
 
       setImages([...(images || []), data.url]);
     } catch (error) {
-      window.alert(error.message || "Unable to upload image");
+      window.alert(error.message || "Kh?ng th? t?i ?nh");
     } finally {
       setIsUploading(false);
       event.target.value = "";
@@ -82,7 +82,7 @@ export default function ImagePicker({ images = [], setImages }) {
       return;
     }
     if (!validateImageLink(linkValue.trim())) {
-      window.alert("The link is not a valid image");
+      window.alert("Li?n k?t kh?ng ph?i h?nh ?nh h?p l?");
       return;
     }
     setImages([...(images || []), linkValue.trim()]);
@@ -124,14 +124,14 @@ export default function ImagePicker({ images = [], setImages }) {
             onClick={() => setActiveTab("upload")}
             disabled={isUploading}
           >
-            <i className="fas fa-upload me-1" /> Upload file
+            <i className="fas fa-upload me-1" /> T?i t?p l?n
           </button>
           <button
             type="button"
             className={`btn btn-sm ${activeTab === "link" ? "btn-primary" : "btn-outline-primary"}`}
             onClick={() => setActiveTab("link")}
           >
-            <i className="fas fa-link me-1" /> Add from link
+            <i className="fas fa-link me-1" /> Th?m t? li?n k?t
           </button>
         </div>
       </div>
@@ -146,10 +146,10 @@ export default function ImagePicker({ images = [], setImages }) {
             disabled={isUploading}
           />
           {isUploading && (
-            <div className="form-text text-primary">Uploading...</div>
+            <div className="form-text text-primary">?ang t?i...</div>
           )}
           <div className="form-text">
-            Supports JPG, PNG, GIF, and WEBP. Maximum size {MAX_SIZE_MB}MB.
+            H? tr? JPG, PNG, GIF v? WEBP. K?ch th??c t?i ?a {MAX_SIZE_MB}MB.
           </div>
         </div>
       ) : (
@@ -166,7 +166,7 @@ export default function ImagePicker({ images = [], setImages }) {
               Add
             </button>
           </div>
-          <div className="form-text">Paste a direct image URL (JPG, PNG, GIF, WEBP).</div>
+          <div className="form-text">D?n li?n k?t ?nh tr?c ti?p (JPG, PNG, GIF, WEBP).</div>
         </div>
       )}
 
@@ -175,12 +175,12 @@ export default function ImagePicker({ images = [], setImages }) {
           {previewImage ? (
             <img
               src={previewImage}
-              alt="Primary image"
+              alt="?nh ch?nh"
               className="img-fluid rounded"
               style={{ maxHeight: 260, objectFit: "contain" }}
             />
           ) : (
-            <span className="text-muted">No images yet</span>
+            <span className="text-muted">Ch?a c? h?nh ?nh n?o</span>
           )}
         </div>
       </div>
@@ -199,14 +199,14 @@ export default function ImagePicker({ images = [], setImages }) {
               <div className="d-flex justify-content-between align-items-center mt-2">
                 <div>
                   {index === 0 ? (
-                    <span className="badge bg-primary">Primary Image</span>
+                    <span className="badge bg-primary">?nh ch?nh</span>
                   ) : (
                     <button
                       type="button"
                       className="btn btn-link btn-sm p-0"
                       onClick={() => setAsPrimary(index)}
                     >
-                      Set as primary
+                      ??t l?m ?nh ch?nh
                     </button>
                   )}
                 </div>
@@ -216,7 +216,7 @@ export default function ImagePicker({ images = [], setImages }) {
                     className="btn btn-outline-secondary"
                     onClick={() => moveImage(index, -1)}
                     disabled={index === 0}
-                    title="Move up"
+                    title="Di chuy?n l?n"
                   >
                     <i className="fas fa-arrow-up" />
                   </button>
@@ -225,7 +225,7 @@ export default function ImagePicker({ images = [], setImages }) {
                     className="btn btn-outline-secondary"
                     onClick={() => moveImage(index, 1)}
                     disabled={index === images.length - 1}
-                    title="Move down"
+                    title="Di chuy?n xu?ng"
                   >
                     <i className="fas fa-arrow-down" />
                   </button>
@@ -233,7 +233,7 @@ export default function ImagePicker({ images = [], setImages }) {
                     type="button"
                     className="btn btn-outline-danger"
                     onClick={() => removeImage(index)}
-                    title="Remove image"
+                    title="X?a ?nh"
                   >
                     <i className="fas fa-times" />
                   </button>

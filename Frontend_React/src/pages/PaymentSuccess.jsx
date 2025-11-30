@@ -15,18 +15,14 @@ const PaymentSuccess = () => {
   const transId = searchParams.get('transId');
   const transactionType = searchParams.get('transactionType');
 
-  const parsedAmount = amountParam && !Number.isNaN(Number(amountParam))
-    ? Number(amountParam)
-    : null;
-  const formattedAmount = parsedAmount !== null
-    ? parsedAmount.toLocaleString('vi-VN')
-    : 'N/A';
+  const parsedAmount = amountParam && !Number.isNaN(Number(amountParam)) ? Number(amountParam) : null;
+  const formattedAmount = parsedAmount !== null ? parsedAmount.toLocaleString('vi-VN') : 'N/A';
 
   const getMethodDisplay = (methodCode) => {
     const methods = {
       cod: 'Thanh toán khi nhận hàng',
       vnpay: 'VNPAY',
-      momo: 'MoMo Wallet',
+      momo: 'MoMo',
     };
     return methods[methodCode?.toLowerCase()] || 'N/A';
   };
@@ -58,10 +54,7 @@ const PaymentSuccess = () => {
           <div className="card-body py-5">
             <div className="text-center">
               <div className="mb-4">
-                <i
-                  className="fas fa-check-circle text-success"
-                  style={{ fontSize: '64px' }}
-                />
+                <i className="fas fa-check-circle text-success" style={{ fontSize: '64px' }} />
               </div>
 
               <h5 className="mb-3">Giao dịch của bạn đã hoàn tất</h5>
@@ -121,11 +114,7 @@ const PaymentSuccess = () => {
               )}
 
               <div className="d-grid gap-2">
-                <button
-                  className="btn btn-primary btn-lg"
-                  onClick={handleOrderClick}
-                  type="button"
-                >
+                <button className="btn btn-primary btn-lg" onClick={handleOrderClick} type="button">
                   <i className="fas fa-box me-2" />
                   Xem chi tiết đơn hàng
                 </button>
@@ -137,11 +126,7 @@ const PaymentSuccess = () => {
                   <i className="fas fa-shopping-bag me-2" />
                   Tiếp tục mua sắm
                 </button>
-                <button
-                  className="btn btn-link btn-lg text-secondary"
-                  onClick={() => navigate('/')}
-                  type="button"
-                >
+                <button className="btn btn-link btn-lg text-secondary" onClick={() => navigate('/')} type="button">
                   <i className="fas fa-home me-2" />
                   Quay về trang chủ
                 </button>

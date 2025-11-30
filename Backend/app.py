@@ -1,5 +1,6 @@
 # Medicare Backend API - Flask Application
 import os
+import sys
 import re
 from io import BytesIO
 from flask import Flask, jsonify, redirect, request, send_file
@@ -20,6 +21,7 @@ try:
     OPENAI_AVAILABLE = True
 except Exception:
     OPENAI_AVAILABLE = False
+
 try:
     from reportlab.lib.pagesizes import letter
     from reportlab.pdfgen import canvas
@@ -28,6 +30,12 @@ except Exception:
     REPORTLAB_AVAILABLE = False
 
 PAID_STATUSES = {'paid', 'completed', 'delivered', 'payment success', 'payment successful', 'shipped'}
+
+# Windows consoles often default to cp1252; ensure UTF-8 so log symbols don't crash the app.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
 
 from routes.admin import admin_bp
 from routes.admin_dashboard import dashboard_bp as admin_dashboard_bp
@@ -178,6 +186,104 @@ def _norm_status(value: str) -> str:
     if not value:
         return ''
     return str(value).strip().lower()
+
+
+# Product helpers: keep review data consistent across endpoints.
+def _coerce_datetime(value):
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, str):
+        try:
+            return datetime.fromisoformat(value)
+        except ValueError:
+            return None
+    return None
+
+
+def _sanitise_reviews(raw_reviews):
+    cleaned = []
+    if not isinstance(raw_reviews, list):
+        return cleaned
+
+    for review in raw_reviews:
+        if not isinstance(review, dict):
+            continue
+
+        try:
+            rating = int(review.get('rating', 0))
+        except (TypeError, ValueError):
+            rating = 0
+        rating = min(5, max(1, rating or 0))
+
+        user_id = str(review.get('userId') or review.get('user_id') or '').strip()
+        user_name = (review.get('userName') or review.get('user_name') or '').strip() or 'Anonymous'
+        comment = (review.get('comment') or '').strip()
+        created_at = _coerce_datetime(review.get('createdAt') or review.get('created_at')) or datetime.utcnow()
+        updated_at = _coerce_datetime(review.get('updatedAt') or review.get('updated_at')) or created_at
+
+        cleaned.append({
+            'userId': user_id,
+            'userName': user_name,
+            'rating': rating,
+            'comment': comment,
+            'createdAt': created_at,
+            'updatedAt': updated_at,
+        })
+
+    return cleaned
+
+
+def _calculate_review_stats(reviews):
+    if not reviews:
+        return 0.0, 0
+    total_rating = 0
+    count = 0
+    for review in reviews:
+        try:
+            rating = int(review.get('rating', 0))
+        except Exception:
+            rating = 0
+        rating = min(5, max(1, rating or 0))
+        total_rating += rating
+        count += 1
+    if count == 0:
+        return 0.0, 0
+    return round(total_rating / count, 2), count
+
+
+def _serialise_reviews_for_response(reviews):
+    sorted_reviews = sorted(reviews, key=lambda r: r.get('createdAt') or datetime.min, reverse=True)
+    formatted = []
+    for review in sorted_reviews:
+        created_at = review.get('createdAt') or datetime.utcnow()
+        if isinstance(created_at, str):
+            created_at = _coerce_datetime(created_at) or datetime.utcnow()
+        formatted.append({
+            'userId': review.get('userId') or '',
+            'userName': review.get('userName') or '',
+            'rating': int(review.get('rating', 0) or 0),
+            'comment': review.get('comment') or '',
+            'createdAt': created_at.isoformat(),
+        })
+    return formatted
+
+
+def _serialize_product_with_reviews(product, include_reviews=False):
+    serialised = serialize_doc(product)
+    raw_reviews = product.get('reviews') or []
+    cleaned_reviews = _sanitise_reviews(raw_reviews)
+    average_rating, review_count = _calculate_review_stats(cleaned_reviews)
+
+    serialised.setdefault('images', [])
+    serialised.setdefault('discount', 0)
+    serialised['averageRating'] = average_rating
+    serialised['rating'] = average_rating
+    serialised['numReviews'] = review_count
+    serialised['reviewsCount'] = review_count
+    serialised['reviews'] = review_count
+    if include_reviews:
+        serialised['reviewsList'] = _serialise_reviews_for_response(cleaned_reviews)
+    return serialised
 
 
 # ============ ADMIN DASHBOARD APIS (lightweight) ============
@@ -523,15 +629,14 @@ def register():
         required_fields = ['name', 'email', 'phone', 'password']
         missing_fields = [field for field in required_fields if not data.get(field)]
         if missing_fields:
-            return jsonify({'error': f"Thiếu các trường: {', '.join(missing_fields)}"}), 400
+            return jsonify({'error': f"Missing fields: {', '.join(missing_fields)}"}), 400
 
-        # Verify reCAPTCHA
+        # reCAPTCHA: optional for registration (kept for backward compatibility if provided)
         captcha_token = data.get('recaptcha_token') or data.get('captchaToken')
-        if not captcha_token:
-            return jsonify({'error': 'Token Captcha là bắt buộc'}), 400
-        
-        if not verify_recaptcha(captcha_token, request.remote_addr):
-            return jsonify({'error': 'Captcha không hợp lệ'}), 400
+        if Config.ENABLE_RECAPTCHA and captcha_token:
+            # Only verify when token is supplied; absence is allowed
+            if not verify_recaptcha(captcha_token, request.remote_addr):
+                return jsonify({'error': 'Captcha khong hop le'}), 400
 
         existing_user = db.users.find_one({'email': data['email']})
         if existing_user:
@@ -577,14 +682,15 @@ def login():
 
         if not email or not password:
             print(f"❌ Missing fields: email={email}, password={password}")
-            return jsonify({'error': 'Email và mật khẩu là bắt buộc'}), 400
+            return jsonify({'error': 'Email and password are required'}), 400
 
-        # Verify reCAPTCHA
-        if not captcha_token:
-            return jsonify({'error': 'Token Captcha là bắt buộc'}), 400
-        
-        if not verify_recaptcha(captcha_token, request.remote_addr):
-            return jsonify({'error': 'Captcha không hợp lệ'}), 400
+        # Verify reCAPTCHA only when enabled
+        if Config.ENABLE_RECAPTCHA:
+            if not captcha_token:
+                return jsonify({'error': 'Captcha token is required'}), 400
+            
+            if not verify_recaptcha(captcha_token, request.remote_addr):
+                return jsonify({'error': 'Captcha không hợp lệ'}), 400
 
         user = db.users.find_one({'email': email})
         if not user:
@@ -681,7 +787,7 @@ def get_products():
             .skip(skip)
             .limit(limit)
         )
-        products = [serialize_doc(product) for product in products_cursor]
+        products = [_serialize_product_with_reviews(product) for product in products_cursor]
 
         return jsonify({
             'products': products,
@@ -697,12 +803,147 @@ def get_products():
 @app.route('/api/products/<product_id>', methods=['GET'])
 def get_product(product_id):
     try:
-        product = db.products.find_one({'_id': ObjectId(product_id), 'is_active': True})
+        try:
+            product_object_id = ObjectId(product_id)
+        except (InvalidId, TypeError):
+            return jsonify({'error': 'Product not found'}), 404
+
+        product = db.products.find_one({'_id': product_object_id, 'is_active': True})
         if not product:
-            return jsonify({'error': 'Không tìm thấy sản phẩm'}), 404
-        return jsonify(serialize_doc(product))
+            return jsonify({'error': 'Product not found'}), 404
+
+        payload = _serialize_product_with_reviews(product, include_reviews=True)
+        return jsonify(payload)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/products/<product_id>/reviews', methods=['GET'])
+def get_product_reviews(product_id):
+    try:
+        try:
+            product_object_id = ObjectId(product_id)
+        except (InvalidId, TypeError):
+            return jsonify({'error': 'Product not found'}), 404
+
+        product = db.products.find_one({'_id': product_object_id, 'is_active': True})
+        if not product:
+            return jsonify({'error': 'Product not found'}), 404
+
+        cleaned_reviews = _sanitise_reviews(product.get('reviews') or [])
+        formatted_reviews = _serialise_reviews_for_response(cleaned_reviews)
+        average_rating, review_count = _calculate_review_stats(cleaned_reviews)
+
+        return jsonify({
+            'productId': str(product_object_id),
+            'reviews': formatted_reviews,
+            'averageRating': average_rating,
+            'numReviews': review_count
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/products/<product_id>/reviews', methods=['POST'])
+@token_required
+def create_product_review(current_user, product_id):
+    try:
+        try:
+            product_object_id = ObjectId(product_id)
+        except (InvalidId, TypeError):
+            return jsonify({'error': 'Product not found'}), 404
+
+        product = db.products.find_one({'_id': product_object_id, 'is_active': True})
+        if not product:
+            return jsonify({'error': 'Product not found'}), 404
+
+        payload = request.get_json(force=True, silent=True) or {}
+        try:
+            rating = int(payload.get('rating', 0))
+        except (TypeError, ValueError):
+            rating = 0
+        comment = (payload.get('comment') or '').strip()
+
+        if rating < 1 or rating > 5:
+            return jsonify({'error': 'Rating must be between 1 and 5'}), 400
+        if not comment:
+            return jsonify({'error': 'Comment is required'}), 400
+
+        user_id = str(current_user['_id'])
+        user_name = current_user.get('name') or current_user.get('email') or 'User'
+
+        # Ensure the user has purchased before allowing a review
+        purchase = db.orders.find_one({
+            'userId': user_id,
+            '$or': [
+                {'items.productId': str(product_object_id)},
+                {'items.productId': product_object_id},
+            ]
+        })
+        if not purchase:
+            return jsonify({'error': 'You need to purchase this product before reviewing'}), 400
+
+        reviews = product.get('reviews') or []
+        if not isinstance(reviews, list):
+            reviews = []
+
+        now = datetime.utcnow()
+        existing_index = None
+        for idx, review in enumerate(reviews):
+            if not isinstance(review, dict):
+                continue
+            if str(review.get('userId') or review.get('user_id')) == user_id:
+                existing_index = idx
+                break
+
+        if existing_index is not None:
+            existing = reviews[existing_index] if isinstance(reviews[existing_index], dict) else {}
+            reviews[existing_index] = {
+                'userId': user_id,
+                'userName': user_name,
+                'rating': rating,
+                'comment': comment,
+                'createdAt': _coerce_datetime(existing.get('createdAt') or existing.get('created_at')) or now,
+                'updatedAt': now,
+            }
+        else:
+            reviews.append({
+                'userId': user_id,
+                'userName': user_name,
+                'rating': rating,
+                'comment': comment,
+                'createdAt': now,
+                'updatedAt': now,
+            })
+
+        reviews_for_db = _sanitise_reviews(reviews)
+        average_rating, review_count = _calculate_review_stats(reviews_for_db)
+        response_reviews = _serialise_reviews_for_response(reviews_for_db)
+
+        db.products.update_one(
+            {'_id': product_object_id},
+            {
+                '$set': {
+                    'reviews': reviews_for_db,
+                    'averageRating': average_rating,
+                    'numReviews': review_count,
+                    'rating': average_rating,
+                    'reviewsCount': review_count,
+                    'updatedAt': datetime.utcnow()
+                }
+            }
+        )
+
+        return jsonify({
+            'message': 'Review saved',
+            'reviews': response_reviews,
+            'averageRating': average_rating,
+            'numReviews': review_count,
+            'updated': existing_index is not None
+        }), 200 if existing_index is not None else 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 # ============ CATEGORIES ============
 
@@ -1127,6 +1368,20 @@ def add_to_cart(current_user):
         return jsonify({'error': str(e)}), 500
 
 # ============ ORDERS ============
+
+def _find_order_for_user(order_identifier: str, user_id: str):
+    """Look up an order by Mongo _id or friendly orderId for the given user."""
+    if not order_identifier:
+        return None
+    try:
+        object_id = ObjectId(order_identifier)
+        found = db.orders.find_one({'_id': object_id, 'userId': user_id})
+        if found:
+            return found
+    except Exception:
+        pass
+    return db.orders.find_one({'orderId': order_identifier, 'userId': user_id})
+
 
 @app.route('/api/orders', methods=['GET'])
 @token_required
@@ -1632,12 +1887,7 @@ def get_order_detail(current_user, order_id):
     try:
         user_id = str(current_user['_id'])
 
-        try:
-            object_id = ObjectId(order_id)
-        except (InvalidId, TypeError):
-            return jsonify({'error': 'Order not found'}), 404
-
-        order = db.orders.find_one({'_id': object_id})
+        order = _find_order_for_user(order_id, user_id)
         if not order:
             return jsonify({'error': 'Order not found'}), 404
 
@@ -1659,12 +1909,7 @@ def update_order_status_user(current_user, order_id):
     try:
         user_id = str(current_user['_id'])
 
-        try:
-            object_id = ObjectId(order_id)
-        except (InvalidId, TypeError):
-            return jsonify({'error': 'Order not found'}), 404
-
-        order = db.orders.find_one({'_id': object_id})
+        order = _find_order_for_user(order_id, user_id)
         if not order:
             return jsonify({'error': 'Order not found'}), 404
 
@@ -1704,17 +1949,7 @@ def reorder_order(current_user, order_id):
     try:
         user_id = str(current_user['_id'])
 
-        def _find_order(oid: str):
-            try:
-                obj_id = ObjectId(oid)
-                found = db.orders.find_one({'_id': obj_id, 'userId': user_id})
-                if found:
-                    return found
-            except Exception:
-                pass
-            return db.orders.find_one({'orderId': oid, 'userId': user_id})
-
-        order = _find_order(order_id)
+        order = _find_order_for_user(order_id, user_id)
         if not order:
             return jsonify({'success': False, 'message': 'Order not found'}), 404
 
@@ -1797,17 +2032,7 @@ def download_invoice(current_user, order_id):
     try:
         user_id = str(current_user['_id'])
 
-        def _find_order(oid: str):
-            try:
-                obj_id = ObjectId(oid)
-                found = db.orders.find_one({'_id': obj_id, 'userId': user_id})
-                if found:
-                    return found
-            except Exception:
-                pass
-            return db.orders.find_one({'orderId': oid, 'userId': user_id})
-
-        order = _find_order(order_id)
+        order = _find_order_for_user(order_id, user_id)
         if not order:
             return jsonify({'success': False, 'message': 'Order not found'}), 404
 
@@ -2365,4 +2590,3 @@ if __name__ == '__main__':
     print('Starting Medicare API Server...')
     print(f'MongoDB: {Config.MONGODB_URI}{Config.DATABASE_NAME}')
     app.run(debug=Config.DEBUG, host=Config.HOST, port=Config.PORT)
-

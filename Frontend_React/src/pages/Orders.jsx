@@ -11,16 +11,18 @@ import '../styles/Orders.css';
 const STATUS_MAP = {
   Pending: 'pending',
   Confirmed: 'processing',
+  Processing: 'processing',
+  Shipped: 'shipped',
   Delivered: 'delivered',
   Cancelled: 'cancelled'
 };
 
 const STATUS_LABELS = {
-  pending: 'Đang Chờ',
-  processing: 'Đang Xử Lý',
-  shipped: 'Đã Gửi Hàng',
-  delivered: 'Đã Giao Hàng',
-  cancelled: 'Đã Hủy'
+  pending: 'Dang cho',
+  processing: 'Dang xu ly',
+  shipped: 'Da gui hang',
+  delivered: 'Da giao hang',
+  cancelled: 'Da huy'
 };
 
 const TIMELINE_COMPLETION = {
@@ -28,7 +30,7 @@ const TIMELINE_COMPLETION = {
   processing: ['pending', 'processing'],
   shipped: ['pending', 'processing', 'shipped'],
   delivered: ['pending', 'processing', 'shipped', 'delivered'],
-  cancelled: ['pending']
+  cancelled: []
 };
 
 const normaliseStatusKey = (status) => {
@@ -217,8 +219,9 @@ const Orders = () => {
           <div className="orders-list">
             {orders.map((order) => {
               const statusKey = normaliseStatusKey(order.status);
+              const isCancelled = statusKey === 'cancelled';
               const completedSteps = new Set(
-                TIMELINE_COMPLETION[statusKey] || TIMELINE_COMPLETION.pending
+                isCancelled ? [] : (TIMELINE_COMPLETION[statusKey] || TIMELINE_COMPLETION.pending)
               );
               const subtotal = Number(order.subtotal ?? 0);
               const shippingFee = Number(order.shippingFee ?? order.shipping_fee ?? 0);
@@ -368,36 +371,41 @@ const Orders = () => {
                     <div className="order-tracking mt-4">
                       <h6 className="mb-3">
                         <i className="fas fa-truck me-2"></i>
-                        Theo Dõi Đơn Hàng
+                        Theo doi don hang
                       </h6>
-                      <div className="tracking-timeline">
-                        <div className={`tracking-step ${completedSteps.has('pending') ? 'completed' : ''}`}>
-                          <div className="tracking-icon">
-                            <i className="fas fa-check"></i>
-                          </div>
-                          <div className="tracking-label">Đã Đặt Hàng</div>
+                      {isCancelled ? (
+                        <div className="alert alert-danger mb-0" role="alert">
+                          Don hang da bi huy. Khong con theo doi trang thai.
                         </div>
-                        <div className={`tracking-step ${completedSteps.has('processing') ? 'completed' : ''}`}>
-                          <div className="tracking-icon">
-                            <i className="fas fa-cog"></i>
+                      ) : (
+                        <div className="tracking-timeline">
+                          <div className={`tracking-step ${completedSteps.has('pending') ? 'completed' : ''}`}>
+                            <div className="tracking-icon">
+                              <i className="fas fa-check"></i>
+                            </div>
+                            <div className="tracking-label">Da dat hang</div>
                           </div>
-                          <div className="tracking-label">Đang Xử Lý</div>
-                        </div>
-                        <div className={`tracking-step ${completedSteps.has('shipped') ? 'completed' : ''}`}>
-                          <div className="tracking-icon">
-                            <i className="fas fa-truck"></i>
+                          <div className={`tracking-step ${completedSteps.has('processing') ? 'completed' : ''}`}>
+                            <div className="tracking-icon">
+                              <i className="fas fa-cog"></i>
+                            </div>
+                            <div className="tracking-label">Dang xu ly</div>
                           </div>
-                          <div className="tracking-label">Đã Gửi Hàng</div>
-                        </div>
-                        <div className={`tracking-step ${completedSteps.has('delivered') ? 'completed' : ''}`}>
-                          <div className="tracking-icon">
-                            <i className="fas fa-home"></i>
+                          <div className={`tracking-step ${completedSteps.has('shipped') ? 'completed' : ''}`}>
+                            <div className="tracking-icon">
+                              <i className="fas fa-truck"></i>
+                            </div>
+                            <div className="tracking-label">Da gui hang</div>
                           </div>
-                          <div className="tracking-label">Đã Giao Hàng</div>
+                          <div className={`tracking-step ${completedSteps.has('delivered') ? 'completed' : ''}`}>
+                            <div className="tracking-icon">
+                              <i className="fas fa-home"></i>
+                            </div>
+                            <div className="tracking-label">Da giao hang</div>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
-
                     {/* Action Buttons */}
                     <div className="order-actions mt-4">
                       <button
@@ -432,4 +440,3 @@ const Orders = () => {
 };
 
 export default Orders;
-

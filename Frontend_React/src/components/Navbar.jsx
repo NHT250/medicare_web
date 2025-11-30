@@ -12,7 +12,6 @@ const Navbar = () => {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -40,8 +39,8 @@ const Navbar = () => {
   };
 
   const getInitials = (name) => {
-    if (!name) return user?.email?.charAt(0).toUpperCase() || 'U';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    if (!name) return user?.email?.charAt(0).toUpperCase() || "U";
+    return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
   };
 
   const toggleUserDropdown = () => {
@@ -84,7 +83,7 @@ const Navbar = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <button className="btn btn-primary search-btn" type="submit">
+            <button className="btn btn-primary search-btn" type="submit" title="Tìm kiếm">
               <i className="fas fa-search"></i>
             </button>
           </form>
@@ -119,30 +118,30 @@ const Navbar = () => {
 
               {/* User Profile Dropdown */}
               <div className="user-menu-container position-relative" ref={dropdownRef}>
-                <div 
+                <div
                   className="user-avatar-wrapper"
                   onClick={toggleUserDropdown}
                   style={{ cursor: "pointer" }}
                 >
-                  <div className="user-avatar">
-                    {getInitials(user.name)}
-                  </div>
+                  <div className="user-avatar">{getInitials(user.name)}</div>
                   <div className="user-info d-none d-lg-block">
                     <div className="user-name">{user.name || user.email}</div>
-                    <div className="user-role">{userRole === "admin" ? "Quản trị viên" : "Khách hàng"}</div>
+                    <div className="user-role">
+                      {userRole === "admin" ? "Quản trị viên" : "Khách hàng"}
+                    </div>
                   </div>
-                  <i className={`fas fa-chevron-${showUserDropdown ? 'up' : 'down'} ms-2 text-muted`}></i>
+                  <i
+                    className={`fas fa-chevron-${showUserDropdown ? "up" : "down"} ms-2 text-muted`}
+                  ></i>
                 </div>
 
                 {/* Dropdown Menu */}
                 {showUserDropdown && (
                   <div className="user-dropdown-menu">
                     <div className="dropdown-header">
-                      <div className="user-dropdown-avatar">
-                        {getInitials(user.name)}
-                      </div>
+                      <div className="user-dropdown-avatar">{getInitials(user.name)}</div>
                       <div>
-                        <div className="dropdown-user-name">{user.name || 'Người dùng'}</div>
+                        <div className="dropdown-user-name">{user.name || "Người dùng"}</div>
                         <div className="dropdown-user-email">{user.email}</div>
                       </div>
                     </div>
@@ -190,10 +189,7 @@ const Navbar = () => {
                       Giỏ Hàng
                     </button>
                     <div className="dropdown-divider"></div>
-                    <button
-                      className="dropdown-item text-danger"
-                      onClick={handleLogout}
-                    >
+                    <button className="dropdown-item text-danger" onClick={handleLogout}>
                       <i className="fas fa-sign-out-alt me-2"></i>
                       Đăng Xuất
                     </button>
@@ -218,16 +214,10 @@ const Navbar = () => {
                 )}
               </div>
 
-              <button
-                className="btn btn-outline-secondary"
-                onClick={() => navigate("/login")}
-              >
+              <button className="btn btn-outline-secondary" onClick={() => navigate("/login")}>
                 Đăng Nhập
               </button>
-              <button
-                className="btn btn-primary"
-                onClick={() => navigate("/login")}
-              >
+              <button className="btn btn-primary" onClick={() => navigate("/login")}>
                 Đăng Ký
               </button>
             </>

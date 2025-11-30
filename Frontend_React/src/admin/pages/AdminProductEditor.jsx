@@ -170,7 +170,7 @@ const AdminProductEditor = ({ mode = "create" }) => {
     if (!isEditMode) {
       return;
     }
-    if (!window.confirm("Are you sure you want to delete this product?")) {
+    if (!window.confirm("Bạn chắc chắn muốn xóa sản phẩm này?")) {
       return;
     }
     try {
@@ -195,7 +195,7 @@ const AdminProductEditor = ({ mode = "create" }) => {
       <div className="alert alert-danger my-4 mx-4">
         {error}
         <button className="btn btn-link" onClick={() => navigate(-1)}>
-          Go Back
+          Quay lai
         </button>
       </div>
     );
@@ -206,14 +206,14 @@ const AdminProductEditor = ({ mode = "create" }) => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="h4 mb-1">
-            {isEditMode ? "Edit Product" : "Create Product"}
+            {isEditMode ? "Chinh sua san pham" : "Tao san pham"}
           </h2>
           <p className="text-muted mb-0">
-            The editor mirrors the product detail page for a familiar workflow.
+            Trinh chinh sua mo phong trang chi tiet san pham de ban thao tac quen thuoc hon.
           </p>
         </div>
-        <button className="btn btn-outline-secondary" onClick={() => navigate("/admin/products")}> 
-          <i className="fas fa-arrow-left me-2" /> Back to list
+        <button className="btn btn-outline-secondary" onClick={() => navigate("/admin/products")}>
+          <i className="fas fa-arrow-left me-2" /> Ve danh sach
         </button>
       </div>
 
@@ -221,7 +221,7 @@ const AdminProductEditor = ({ mode = "create" }) => {
         <div className="col-lg-5">
           <div className="card shadow-sm border-0 h-100">
             <div className="card-header bg-white">
-              <h5 className="card-title mb-0">Images</h5>
+              <h5 className="card-title mb-0">Hinh anh</h5>
             </div>
             <div className="card-body">
               <ImagePicker images={product.images} setImages={handleImagesChange} />
@@ -234,7 +234,7 @@ const AdminProductEditor = ({ mode = "create" }) => {
             <div className="card-body">
               <div className="row g-3">
                 <div className="col-md-6">
-                  <label className="form-label">Product Name</label>
+                  <label className="form-label">Ten san pham</label>
                   <input
                     type="text"
                     className="form-control"
@@ -254,7 +254,7 @@ const AdminProductEditor = ({ mode = "create" }) => {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">Slug</label>
+                  <label className="form-label">Duong dan (slug)</label>
                   <input
                     type="text"
                     className="form-control"
@@ -263,13 +263,13 @@ const AdminProductEditor = ({ mode = "create" }) => {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">Category</label>
+                  <label className="form-label">Danh muc</label>
                   <select
                     className="form-select text-capitalize"
                     value={product.category}
                     onChange={(e) => handleFieldChange("category", e.target.value)}
                   >
-                    <option value="">Select a category</option>
+                    <option value="">Chon danh muc</option>
                     {FIXED_CATEGORIES.map((categoryOption) => (
                       <option key={categoryOption.id} value={categoryOption.slug}>
                         {categoryOption.name}
@@ -278,7 +278,7 @@ const AdminProductEditor = ({ mode = "create" }) => {
                   </select>
                 </div>
                 <div className="col-md-3">
-                  <label className="form-label">Price</label>
+                  <label className="form-label">Gia</label>
                   <input
                     type="number"
                     min="0"
@@ -288,7 +288,7 @@ const AdminProductEditor = ({ mode = "create" }) => {
                   />
                 </div>
                 <div className="col-md-3">
-                  <label className="form-label">Discount (%)</label>
+                  <label className="form-label">Giam gia (%)</label>
                   <input
                     type="number"
                     min="0"
@@ -299,7 +299,7 @@ const AdminProductEditor = ({ mode = "create" }) => {
                   />
                 </div>
                 <div className="col-md-3">
-                  <label className="form-label">Stock</label>
+                  <label className="form-label">Ton kho</label>
                   <input
                     type="number"
                     min="0"
@@ -309,7 +309,7 @@ const AdminProductEditor = ({ mode = "create" }) => {
                   />
                 </div>
                 <div className="col-md-3">
-                  <label className="form-label d-block">Status</label>
+                  <label className="form-label d-block">Trang thai</label>
                   <div className="form-check form-switch">
                     <input
                       className="form-check-input"
@@ -318,7 +318,7 @@ const AdminProductEditor = ({ mode = "create" }) => {
                       onChange={(e) => handleFieldChange("is_active", e.target.checked)}
                     />
                     <label className="form-check-label">
-                      {product.is_active ? "Active" : "Hidden"}
+                      {product.is_active ? "Dang ban" : "An"}
                     </label>
                   </div>
                 </div>
@@ -327,11 +327,11 @@ const AdminProductEditor = ({ mode = "create" }) => {
               <div className="bg-light rounded border p-3 mt-4">
                 <div className="d-flex align-items-center justify-content-between">
                   <div>
-                    <span className="text-muted">Price after discount</span>
+                    <span className="text-muted">Gia sau giam</span>
                     <div className="fs-4 text-success fw-semibold">${finalPrice.toFixed(2)}</div>
                   </div>
                   <span className={`badge ${product.stock > 0 ? "bg-success" : "bg-danger"}`}>
-                    {product.stock > 0 ? "In Stock" : "Out of Stock"}
+                    {product.stock > 0 ? "Con hang" : "Het hang"}
                   </span>
                 </div>
               </div>
@@ -347,7 +347,7 @@ const AdminProductEditor = ({ mode = "create" }) => {
                     onClick={() => setActiveTab("description")}
                     type="button"
                   >
-                    Description
+                    Mo ta
                   </button>
                 </li>
                 <li className="nav-item">
@@ -356,7 +356,7 @@ const AdminProductEditor = ({ mode = "create" }) => {
                     onClick={() => setActiveTab("specifications")}
                     type="button"
                   >
-                    Specifications
+                    Thong so
                   </button>
                 </li>
                 <li className="nav-item">
@@ -365,7 +365,7 @@ const AdminProductEditor = ({ mode = "create" }) => {
                     onClick={() => setActiveTab("reviews")}
                     type="button"
                   >
-                    Reviews
+                    Danh gia
                   </button>
                 </li>
               </ul>
@@ -373,7 +373,7 @@ const AdminProductEditor = ({ mode = "create" }) => {
             <div className="card-body">
               {activeTab === "description" && (
                 <div>
-                  <label className="form-label">Detailed Description</label>
+                  <label className="form-label">Mo ta chi tiet</label>
                   <textarea
                     className="form-control"
                     rows="6"
@@ -390,7 +390,7 @@ const AdminProductEditor = ({ mode = "create" }) => {
                         <input
                           type="text"
                           className="form-control"
-                          placeholder="Attribute"
+                          placeholder="Thuoc tinh"
                           value={item.key}
                           onChange={(e) => handleSpecificationChange(index, "key", e.target.value)}
                         />
@@ -399,7 +399,7 @@ const AdminProductEditor = ({ mode = "create" }) => {
                         <input
                           type="text"
                           className="form-control"
-                          placeholder="Value"
+                          placeholder="Gia tri"
                           value={item.value}
                           onChange={(e) => handleSpecificationChange(index, "value", e.target.value)}
                         />
@@ -417,13 +417,13 @@ const AdminProductEditor = ({ mode = "create" }) => {
                     </div>
                   ))}
                   <button type="button" className="btn btn-outline-primary" onClick={addSpecification}>
-                    <i className="fas fa-plus me-1" /> Add row
+                    <i className="fas fa-plus me-1" /> Them dong
                   </button>
                 </div>
               )}
               {activeTab === "reviews" && (
                 <div className="text-muted">
-                  Mock mode is showing {product.reviewsCount || 0} reviews. Administrators cannot edit them here.
+                  Che do gia lap hien thi {product.reviewsCount || 0} danh gia. Quan tri vien khong chinh sua tai day.
                 </div>
               )}
             </div>
@@ -434,12 +434,12 @@ const AdminProductEditor = ({ mode = "create" }) => {
       <div className="card shadow-sm border-0 mt-4 sticky-bottom" style={{ zIndex: 10 }}>
         <div className="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
           <div className="text-muted">
-            {saving ? "Saving..." : lastSaved ? `Last saved at ${lastSaved.toLocaleTimeString()}` : "Not saved yet"}
+            {saving ? "Dang luu..." : lastSaved ? `Da luu luc ${lastSaved.toLocaleTimeString()}` : "Chua duoc luu"}
           </div>
           <div className="btn-group">
             {isEditMode && (
               <button type="button" className="btn btn-outline-danger" onClick={handleDelete} disabled={saving}>
-                <i className="fas fa-trash me-1" /> Delete
+                <i className="fas fa-trash me-1" /> Xoa
               </button>
             )}
             <button
@@ -448,7 +448,7 @@ const AdminProductEditor = ({ mode = "create" }) => {
               onClick={() => saveProduct({ closeAfterSave: false })}
               disabled={saving}
             >
-              <i className="fas fa-save me-1" /> Save
+              <i className="fas fa-save me-1" /> Luu
             </button>
             <button
               type="button"
@@ -456,7 +456,7 @@ const AdminProductEditor = ({ mode = "create" }) => {
               onClick={() => saveProduct({ closeAfterSave: true })}
               disabled={saving}
             >
-              <i className="fas fa-check me-1" /> Save & Close
+              <i className="fas fa-check me-1" /> Luu & dong
             </button>
           </div>
         </div>

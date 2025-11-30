@@ -84,7 +84,7 @@ const AdminOrderDetail = () => {
 
     if (nextStatus === "Cancelled") {
       const confirmed = window.confirm(
-        "Are you sure you want to cancel this order?"
+        "Bạn chắc chắn muốn hủy đơn này?"
       );
       if (!confirmed) {
         return;
@@ -97,13 +97,12 @@ const AdminOrderDetail = () => {
       const updated = await adminApi.orders.updateStatus(id, nextStatus);
       setOrder(updated);
       setNotes(updated.notes || "");
-      setFeedback({ type: "success", message: `Order status updated to ${nextStatus}.` });
+      setFeedback({ type: "success", message: `Trạng thái đơn đã cập nhật: ${nextStatus}.` });
     } catch (err) {
       console.error("Failed to update status", err);
       setFeedback({
         type: "danger",
-        message:
-          err?.response?.data?.error || "Unable to update the order status.",
+        message: err?.response?.data?.error || "Không thể cập nhật trạng thái đơn.",
       });
     } finally {
       setStatusUpdating(false);
@@ -164,7 +163,7 @@ const AdminOrderDetail = () => {
           {error}
         </div>
         <button type="button" className="btn btn-outline-primary" onClick={() => navigate(-1)}>
-          <i className="fas fa-arrow-left me-2" /> Back to order list
+          <i className="fas fa-arrow-left me-2" /> Quay lại danh sách đơn
         </button>
       </div>
     );
@@ -194,14 +193,14 @@ const AdminOrderDetail = () => {
         className="btn btn-link text-decoration-none ps-0 mb-3"
         onClick={() => navigate(-1)}
       >
-        <i className="fas fa-arrow-left me-2" /> Back to orders
+        <i className="fas fa-arrow-left me-2" /> Quay lại
       </button>
 
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-4">
         <div>
-          <h2 className="h4 mb-1">Order #{orderNumber}</h2>
-          <p className="text-muted mb-1">Created: {createdAt}</p>
-          <p className="text-muted mb-0">Last update: {updatedAt}</p>
+          <h2 className="h4 mb-1">Đơn #{orderNumber}</h2>
+          <p className="text-muted mb-1">Tạo lúc: {createdAt}</p>
+          <p className="text-muted mb-0">Cập nhật: {updatedAt}</p>
         </div>
         <div className="text-md-end">
           <span className={`badge fs-6 ${statusBadgeClass}`}>{currentStatus}</span>
@@ -218,7 +217,7 @@ const AdminOrderDetail = () => {
         <div className="col-lg-7">
           <div className="card shadow-sm border-0 mb-4">
             <div className="card-body">
-              <h5 className="card-title">Customer</h5>
+              <h5 className="card-title">Khách hàng</h5>
               <div className="row">
                 <div className="col-md-6">
                   <p className="mb-1 fw-semibold">{customer.name || shipping.full_name || "Unknown"}</p>
@@ -226,7 +225,7 @@ const AdminOrderDetail = () => {
                   <p className="mb-0 text-muted">{customer.phone || shipping.phone || "-"}</p>
                 </div>
                 <div className="col-md-6">
-                  <h6 className="text-muted">Shipping</h6>
+                  <h6 className="text-muted">Giao hàng</h6>
                   <p className="mb-1">{shipping.address || "-"}</p>
                   <p className="mb-1">{shippingLine}</p>
                   <p className="mb-1">{shipping.country || "-"}</p>
@@ -238,22 +237,22 @@ const AdminOrderDetail = () => {
 
           <div className="card shadow-sm border-0 mb-4">
             <div className="card-body">
-              <h5 className="card-title">Items</h5>
+              <h5 className="card-title">Sản phẩm</h5>
               <div className="table-responsive">
                 <table className="table table-sm align-middle">
                   <thead className="table-light">
                     <tr>
-                      <th scope="col">Product</th>
-                      <th scope="col">Qty</th>
-                      <th scope="col">Unit price</th>
-                      <th scope="col">Subtotal</th>
+                      <th scope="col">Sản phẩm</th>
+                      <th scope="col">SL</th>
+                      <th scope="col">Đơn giá</th>
+                      <th scope="col">Tạm tính</th>
                     </tr>
                   </thead>
                   <tbody>
                     {items.length === 0 ? (
                       <tr>
                         <td colSpan={4} className="text-center text-muted">
-                          No products in this order.
+                          Không có sản phẩm trong đơn.
                         </td>
                       </tr>
                     ) : (
@@ -275,7 +274,7 @@ const AdminOrderDetail = () => {
           <div className="card shadow-sm border-0 mb-4">
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-center mb-2">
-                <h5 className="card-title mb-0">Internal notes</h5>
+                <h5 className="card-title mb-0">Ghi chú nội bộ</h5>
                 <button
                   type="button"
                   className="btn btn-sm btn-primary"
@@ -285,11 +284,11 @@ const AdminOrderDetail = () => {
                   {savingNotes ? (
                     <span>
                       <span className="spinner-border spinner-border-sm me-2" role="status" />
-                      Saving...
+                      Đang lưu...
                     </span>
                   ) : (
                     <span>
-                      <i className="fas fa-save me-1" /> Save
+                      <i className="fas fa-save me-1" /> Lưu
                     </span>
                   )}
                 </button>
@@ -299,16 +298,16 @@ const AdminOrderDetail = () => {
                 rows={4}
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
-                placeholder="Add internal notes for this order"
+                placeholder="Thêm ghi chú nội bộ cho đơn này"
               />
             </div>
           </div>
 
           <div className="card shadow-sm border-0">
             <div className="card-body">
-              <h5 className="card-title">Activity log</h5>
+              <h5 className="card-title">Lịch sử hoạt động</h5>
               {activityLog.length === 0 ? (
-                <p className="text-muted mb-0">No activity yet.</p>
+                <p className="text-muted mb-0">Chưa có ghi nhận.</p>
               ) : (
                 <ul className="list-group list-group-flush">
                   {activityLog.map((entry, index) => (
@@ -319,22 +318,22 @@ const AdminOrderDetail = () => {
                         </span>
                         <small className="text-muted">{formatDateTime(entry.timestamp)}</small>
                       </div>
-                      {entry.status && (
-                        <div className="mt-1">
-                          <span className={`badge ${STATUS_BADGE[entry.status] || "bg-secondary"}`}>
-                            {entry.status}
-                          </span>
-                        </div>
-                      )}
-                      {entry.message && <p className="mb-1 small">{entry.message}</p>}
-                      {entry.actor?.name && (
-                        <small className="text-muted">By {entry.actor.name}</small>
-                      )}
-                      {entry.fields && (
-                        <small className="text-muted d-block">
-                          Fields: {Array.isArray(entry.fields) ? entry.fields.join(", ") : entry.fields}
-                        </small>
-                      )}
+              {entry.status && (
+                <div className="mt-1">
+                  <span className={`badge ${STATUS_BADGE[entry.status] || "bg-secondary"}`}>
+                    {entry.status}
+                  </span>
+                </div>
+              )}
+              {entry.message && <p className="mb-1 small">{entry.message}</p>}
+              {entry.actor?.name && (
+                <small className="text-muted">Bởi {entry.actor.name}</small>
+              )}
+              {entry.fields && (
+                <small className="text-muted d-block">
+                  Trường: {Array.isArray(entry.fields) ? entry.fields.join(", ") : entry.fields}
+                </small>
+              )}
                     </li>
                   ))}
                 </ul>
@@ -346,21 +345,21 @@ const AdminOrderDetail = () => {
         <div className="col-lg-5">
           <div className="card shadow-sm border-0 mb-4">
             <div className="card-body">
-              <h5 className="card-title">Payment</h5>
-              <p className="mb-1"><strong>Method:</strong> {payment.method || "-"}</p>
-              <p className="mb-3"><strong>Status:</strong> {payment.status || "-"}</p>
-              <h6 className="fw-semibold">Order totals</h6>
+              <h5 className="card-title">Thanh toán</h5>
+              <p className="mb-1"><strong>Phương thức:</strong> {payment.method || "-"}</p>
+              <p className="mb-3"><strong>Trạng thái:</strong> {payment.status || "-"}</p>
+              <h6 className="fw-semibold">Tổng đơn hàng</h6>
               <ul className="list-group list-group-flush mb-3">
                 <li className="list-group-item d-flex justify-content-between px-0">
-                  <span>Subtotal</span>
+                  <span>Tạm tính</span>
                   <span>{formatCurrency(order.subtotal)}</span>
                 </li>
                 <li className="list-group-item d-flex justify-content-between px-0">
-                  <span>Shipping fee</span>
+                  <span>Phí vận chuyển</span>
                   <span>{formatCurrency(order.shipping_fee)}</span>
                 </li>
                 <li className="list-group-item d-flex justify-content-between px-0 fw-semibold">
-                  <span>Total</span>
+                  <span>Tổng cộng</span>
                   <span>{formatCurrency(order.total)}</span>
                 </li>
               </ul>
@@ -376,11 +375,11 @@ const AdminOrderDetail = () => {
                     {statusUpdating ? (
                       <span>
                         <span className="spinner-border spinner-border-sm me-2" role="status" />
-                        Updating...
+                        Đang cập nhật...
                       </span>
                     ) : (
                       <span>
-                        <i className="fas fa-check me-2" /> Mark as Confirmed
+                        <i className="fas fa-check me-2" /> Đánh dấu đã xác nhận
                       </span>
                     )}
                   </button>
@@ -395,11 +394,11 @@ const AdminOrderDetail = () => {
                     {statusUpdating ? (
                       <span>
                         <span className="spinner-border spinner-border-sm me-2" role="status" />
-                        Updating...
+                        Đang cập nhật...
                       </span>
                     ) : (
                       <span>
-                        <i className="fas fa-truck me-2" /> Mark as Delivered
+                        <i className="fas fa-truck me-2" /> Đánh dấu đã giao
                       </span>
                     )}
                   </button>
@@ -414,18 +413,18 @@ const AdminOrderDetail = () => {
                     {statusUpdating ? (
                       <span>
                         <span className="spinner-border spinner-border-sm me-2" role="status" />
-                        Updating...
+                        Đang cập nhật...
                       </span>
                     ) : (
                       <span>
-                        <i className="fas fa-times me-2" /> Cancel order
+                        <i className="fas fa-times me-2" /> Hủy đơn
                       </span>
                     )}
                   </button>
                 )}
                 {!showConfirm && !showDeliver && !showCancel && (
                   <p className="text-muted text-center mb-0">
-                    No additional status actions available.
+                    Không có hành động trạng thái khác.
                   </p>
                 )}
               </div>
@@ -438,4 +437,3 @@ const AdminOrderDetail = () => {
 };
 
 export default AdminOrderDetail;
-
