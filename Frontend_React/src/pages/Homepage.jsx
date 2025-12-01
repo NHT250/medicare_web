@@ -9,58 +9,58 @@ import Footer from "../components/Footer";
 import "./Homepage.css";
 
 const categories = [
-  { id: "cat-1", name: "Gi?m ?au", key: "pain_relief", slug: "pain-relief", icon: "fas fa-pills" },
+  { id: "cat-1", name: "Giảm đau", key: "pain_relief", slug: "pain-relief", icon: "fas fa-pills" },
   { id: "cat-2", name: "Vitamin", key: "vitamins", slug: "vitamins", icon: "fas fa-leaf" },
-  { id: "cat-3", name: "Ch?m s?c da", key: "skin_care", slug: "skin-care", icon: "fas fa-hand-sparkles" },
-  { id: "cat-4", name: "S?c kh?e tim m?ch", key: "heart_health", slug: "heart-health", icon: "fas fa-heartbeat" },
-  { id: "cat-5", name: "S?c kh?e t?m th?n", key: "mental_health", slug: "mental-health", icon: "fas fa-brain" },
-  { id: "cat-6", name: "H? h?p", key: "respiratory", slug: "respiratory", icon: "fas fa-lungs" },
+  { id: "cat-3", name: "Chăm sóc da", key: "skin_care", slug: "skin-care", icon: "fas fa-hand-sparkles" },
+  { id: "cat-4", name: "Sức khỏe tim mạch", key: "heart_health", slug: "heart-health", icon: "fas fa-heartbeat" },
+  { id: "cat-5", name: "Sức khỏe tâm thần", key: "mental_health", slug: "mental-health", icon: "fas fa-brain" },
+  { id: "cat-6", name: "Hô hấp", key: "respiratory", slug: "respiratory", icon: "fas fa-lungs" },
 ];
 
 const whyChoose = [
   {
     id: "why-1",
     icon: "fas fa-shield-alt",
-    title: "Thu?c Ch?nh H?ng",
-    subtitle: "Ngu?n g?c t? c?c nh? s?n xu?t ???c x?c minh r? r?ng.",
+    title: "Thuốc Chính Hãng",
+    subtitle: "Nguồn gốc từ các nhà sản xuất được xác minh rõ ràng.",
   },
   {
     id: "why-2",
     icon: "fas fa-shipping-fast",
-    title: "Giao H?ng Nhanh",
-    subtitle: "Giao h?ng to?n qu?c trong 24-48 gi?.",
+    title: "Giao Hàng Nhanh",
+    subtitle: "Giao hàng toàn quốc trong 24-48 giờ.",
   },
   {
     id: "why-3",
     icon: "fas fa-user-md",
-    title: "D??c S? 24/7",
-    subtitle: "Chuy?n gia s?n s?ng h? tr? m?i l?c.",
+    title: "Dược Sĩ 24/7",
+    subtitle: "Chuyên gia sẵn sàng hỗ trợ mọi lúc.",
   },
   {
     id: "why-4",
     icon: "fas fa-lock",
-    title: "Thanh To?n An To?n",
-    subtitle: "B?o v? nhi?u l?p, an t?m thanh to?n.",
+    title: "Thanh Toán An Toàn",
+    subtitle: "Bảo vệ nhiều lớp, an tâm thanh toán.",
   },
 ];
 
 const reviews = [
   {
     id: "rev-1",
-    name: "Minh Nguy?n",
-    comment: "Giao h?ng nhanh v? ??ng g?i r?t c?n th?n!",
+    name: "Minh Nguyễn",
+    comment: "Giao hàng nhanh và đóng gói rất cẩn thận!",
     avatar: "https://ui-avatars.com/api/?name=Minh+Nguyen&background=0D6EFD&color=fff",
   },
   {
     id: "rev-2",
-    name: "Lan Ph?m",
-    comment: "Y?u th?ch s?n ph?m ?? ???c x?c minh v? ??t h?ng d? d?ng.",
+    name: "Lan Phạm",
+    comment: "Yêu thích sản phẩm đã được xác minh và đặt hàng dễ dàng.",
     avatar: "https://ui-avatars.com/api/?name=Lan+Pham&background=2ABFF4&color=0b1224",
   },
   {
     id: "rev-3",
-    name: "Huy Tr?n",
-    comment: "Chat v?i d??c s? r?t h?u ?ch, k? c? l?c ??m khuya.",
+    name: "Huy Trần",
+    comment: "Chat với dược sĩ rất hữu ích, kể cả lúc đêm khuya.",
     avatar: "https://ui-avatars.com/api/?name=Huy+Tran&background=4ADEDE&color=0b1224",
   },
 ];
@@ -122,10 +122,10 @@ const Homepage = () => {
 
             <section className="categories-section section-shell" id="categories">
         <div className="section-header text-center">
-          <p className="section-eyebrow">T?m nh?ng g? b?n c?n</p>
-          <h2 className="fw-bold">Mua s?m theo danh m?c</h2>
+          <p className="section-eyebrow">Tìm những gì bạn cần</p>
+          <h2 className="fw-bold">Mua sắm theo danh mục</h2>
           <p className="section-subtitle">
-            Kh?m ph? c?c s?n ph?m s?c kh?e ??ng tin c?y ???c tuy?n ch?n cho b?n m?i ng?y.
+            Khám phá các sản phẩm sức khỏe đáng tin cậy được tuyển chọn cho bạn mỗi ngày.
           </p>
         </div>
 
@@ -138,7 +138,7 @@ const Homepage = () => {
               <div className="category-body">
                 <h6 className="category-title">{category.name}</h6>
                 <p className="category-count text-muted">
-                  {(categoryCounts[category.key] ?? 0)} s?n ph?m
+                  {(categoryCounts[category.key] ?? 0)} sản phẩm
                 </p>
               </div>
             </div>
@@ -148,10 +148,10 @@ const Homepage = () => {
 
             <section className="why-section section-shell" id="why-choose-us">
         <div className="section-header text-center">
-          <p className="section-eyebrow">T?i sao ch?n ch?ng t?i</p>
-          <h2 className="fw-bold">Nh? thu?c ??ng tin c?y c?a b?n</h2>
+          <p className="section-eyebrow">Tại sao chọn chúng tôi</p>
+          <h2 className="fw-bold">Nhà thuốc trực tuyến tin cậy của bạn</h2>
           <p className="section-subtitle">
-            Tr?i nghi?m ch?m s?c hi?n ??i v?i s?n ph?m ch?nh h?ng v? h? tr? ?u ti?n t? d??c s?.
+            Trải nghiệm chăm sóc hiện đại với sản phẩm chính hãng và hỗ trợ ưu tiên từ dược sĩ.
           </p>
         </div>
 
@@ -172,28 +172,28 @@ const Homepage = () => {
 
             <section className="weekly-deals section-shell" id="weekly-deals">
         <div className="weekly-banner">
-          <div className="weekly-content">
+            <div className="weekly-content">
             <div className="weekly-icon">%</div>
             <div>
-              <p className="section-eyebrow mb-2">?u ??i h?ng tu?n</p>
-              <h3 className="mb-2">Ti?t ki?m nhi?u h?n cho s?n ph?m thi?t y?u</h3>
+              <p className="section-eyebrow mb-2">Ưu đãi hàng tuần</p>
+              <h3 className="mb-2">Tiết kiệm nhiều hơn cho sản phẩm thiết yếu</h3>
               <p className="section-subtitle mb-0">
-                L?a ch?n ???c tuy?n ch?n c?p nh?t m?i tu?n v?i ch?t l??ng chu?n nh? thu?c.
+                Lựa chọn được tuyển chọn cập nhật mỗi tuần với chất lượng chuẩn nhà thuốc.
               </p>
             </div>
           </div>
           <button className="btn btn-light weekly-cta" onClick={() => navigate("/products")}>
-            Xem ?u ??i
+            Xem ưu đãi
           </button>
         </div>
       </section>
 
             <section className="reviews-section section-shell" id="customer-reviews">
         <div className="section-header text-center">
-          <p className="section-eyebrow">??nh Gi? Kh?ch H?ng</p>
-          <h2 className="fw-bold">Kh?ch h?ng n?i g? v? ch?ng t?i</h2>
+          <p className="section-eyebrow">Đánh Giá Khách Hàng</p>
+          <h2 className="fw-bold">Khách hàng nói gì về chúng tôi</h2>
           <p className="section-subtitle">
-            Ph?n h?i th?c t? t? nh?ng ng??i tin t??ng ch?ng t?i v?i s?c kh?e h?ng ng?y c?a h?.
+            Phản hồi thực tế từ những người tin tưởng chúng tôi với sức khỏe hằng ngày của họ.
           </p>
         </div>
 
@@ -205,7 +205,7 @@ const Homepage = () => {
                 <div>
                   <h6 className="mb-1">{review.name}</h6>
                   <div className="review-stars" aria-label="Rated 5 out of 5">
-                    <span>?????</span>
+                    <span>★★★★★</span>
                   </div>
                 </div>
               </div>
@@ -218,21 +218,21 @@ const Homepage = () => {
 
 <section className="featured-section section-shell" id="featured-medicines">
   <div className="section-header text-center">
-    <p className="section-eyebrow">N?i b?t d?nh cho b?n</p>
-    <h2 className="fw-bold">Thu?c N?i B?t</h2>
+    <p className="section-eyebrow">Nổi bật dành cho bạn</p>
+    <h2 className="fw-bold">Thuốc Nổi Bật</h2>
     <p className="section-subtitle">
-      Kh?m ph? s?n ph?m m?i v? b?n ch?y nh?t ???c t?y ch?nh theo nhu c?u c?a b?n.
+      Khám phá sản phẩm mới và bán chạy nhất được tùy chỉnh theo nhu cầu của bạn.
     </p>
   </div>
 
   {featuredProducts.length === 0 ? (
     <div className="featured-card text-center">
-      <div className="empty-icon mb-3">??</div>
-      <h5 className="mb-2">Ch?a c? thu?c n?i b?t</h5>
+      <div className="empty-icon mb-3">💊</div>
+      <h5 className="mb-2">Chưa có thuốc nổi bật</h5>
       <p className="text-muted mb-4">
-        Ch?ng t?i ?ang tuy?n ch?n c?c s?n ph?m h?ng ??u cho b?n. Trong l?c ch? ??i, h?y duy?t danh m?c ?? t?m s?n ph?m ph? h?p.
+        Chúng tôi đang tuyển chọn các sản phẩm hàng đầu cho bạn. Trong lúc chờ đợi, hãy duyệt danh mục để tìm sản phẩm phù hợp.
       </p>
-      <button className="btn btn-primary px-4" onClick={() => navigate("/products")}>Xem t?t c? thu?c</button>
+      <button className="btn btn-primary px-4" onClick={() => navigate("/products")}>Xem tất cả thuốc</button>
     </div>
   ) : (
     <div className="featured-grid">
@@ -242,10 +242,10 @@ const Homepage = () => {
             {product.imageUrl ? (
               <img src={product.imageUrl} alt={product.name} />
             ) : (
-              <div className="empty-icon">??</div>
+              <div className="empty-icon">💊</div>
             )}
             <span className="badge bg-warning text-dark best-seller-badge">
-              B?n ch?y ? {product.totalSold}
+              Bán chạy: {product.totalSold}
             </span>
           </div>
           <h5 className="mt-3 mb-2">{product.name}</h5>
@@ -257,7 +257,7 @@ const Homepage = () => {
             onClick={() => navigate(`/product/${product._id}`)}
             type="button"
           >
-            Xem chi ti?t
+            Xem chi tiết
           </button>
         </div>
       ))}

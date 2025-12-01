@@ -1,9 +1,7 @@
 // Footer Component
 import React from "react";
-import { useNavigate } from "react-router-dom";
 
 const Footer = () => {
-  const Navigate = useNavigate();
 
   return (
     <footer className="footer bg-dark text-light py-5">
@@ -43,7 +41,7 @@ const Footer = () => {
               </li>
               <li>
                 <a href="#" className="text-light text-decoration-none">
-                  Sứ Mệnh & Tầm Nhìn
+                  Sứ Mệnh &amp; Tầm Nhìn
                 </a>
               </li>
               <li>
@@ -70,12 +68,12 @@ const Footer = () => {
               </li>
               <li>
                 <a href="#" className="text-light text-decoration-none">
-                  Đổi Trả & Hoàn Tiền
+                  Đổi Trả &amp; Hoàn Tiền
                 </a>
               </li>
               <li>
                 <a href="#" className="text-light text-decoration-none">
-                  Thông Tin Giao Hàng
+                  Thời Gian Giao Hàng
                 </a>
               </li>
               <li>
